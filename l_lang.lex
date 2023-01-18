@@ -9,7 +9,7 @@ COMMENT #[^\n]*
 %%
 
 {NUMBER} {printf("NUMBER %s\n", yytext);}
-{COMMENT} {printf("COMMENT %s\n",yytext);}
+{COMMENT} {}
 "INT" {printf("INTEGER\n");}
 "MOD" {printf("REMAINDER\n");}
 {VAR_NAME} {printf("VAR_NAME %s\n", yytext);}
