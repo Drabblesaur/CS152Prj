@@ -196,31 +196,61 @@ NONE show_val <-(){}
 show_val <-();
 ```
 
-## Symbol Table
+## Symbol Tables
+
+### RESERVED WORDS
 
 | Symbol | Token Name |
 | --- | --- |
 | INT | INTEGER |
-| # | COMMENT |
-| #* | COMMENT_S |
-| *# | COMMENT_E |
-| [  | ARY_SUB_L |
-| ] | ARY_SUB_R |
-| <- | FUNCTION |
-| + | ADDITION |
-| - | SUBTRACTION |
-| * | MULTIPLICATION |
-| / | DIVISION |
-| -> | ASSIGNMENT |
+| WHILE | WHILE |
+| DO | DO | 
+| FOR | FOR |
+| IF | IF |
+| ELSE IF | ELSE_IF |
+| ELSE | ELSE |
+| PRINT | PRINT |
+| FUNCT | FUNCTION_CALL |
+
+### ARITHMATIC OPERATORS
+
+| Symbol | Token Name |
+| --- | --- |
+| + | PLUS |
+| - | MINUS |
+| * | MULT|
+| / | DIV |
 | MOD | REMAINDER |
+
+### RELATIONAL OPERATORS
+
+| Symbol | Token Name |
+| --- | --- |
 | = | EQUAL |
 | ~= | NOT_EQUAL |
 | > | GREATER_THAN |
 | >= | GREATER_THAN_OR_EQUAL_TO |
 | < | LESS_THAN |
 | <= | LESS_THAN_OR_EQUAL_TO |
+
+### IDENTIFIERS AND NUMBERS
+
+| Symbol | Token Name |
+| --- | --- |
+| identifier (e.g., "_lLang", "BiggesTBird", "TT_TT", "insec") | VAR_NAME XXXX [where XXXX is the identifier itself] |
+| number (e.g., "40", "4389", "3", "948082") | NUMBER XXXX [where XXXX is the number itself] |
+
+### OTHER SPECIAL SYMBOLS
+
+| Symbol | Token Name |
+| --- | --- |
+| -> | ASSIGNMENT |
+| <- | FUNCTION_PARAMS |
 | ; | SEMICOLON |
-| {  | BRACKET_L |
-| } | BRACKET_R |
+| , | COMMA |
+| [  | SQUARE_BRACKET_L |
+| ] | SQUARE_BRACKET_R |
+| {  | CURLY_BRACKET_L |
+| } | CURLY_BRACKET_R |
 | ( | PARAN_L |
 | ) | PARAN_R |
