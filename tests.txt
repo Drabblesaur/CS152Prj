@@ -1,0 +1,3 @@
+INT x_X -> 45;
+INT _ary[4] -> {1,2,3,4};
+INT art_ -> 5+5-3*4/2; # equal to 4
