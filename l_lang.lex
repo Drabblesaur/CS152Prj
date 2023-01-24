@@ -2,9 +2,10 @@
 #include <stdio.h>
 %}
 
+LETTER [a-zA-Z]
 NUMBER [0-9]+
-VAR_NAME (_*[a-zA-Z]*)+
-COMMENT #[^\n]*
+VAR_NAME (_*{LETTER}*)*{LETTER}
+COMMENT ?s:(#[^\n]*)|(#\*.*\*#)
 
 %%
 
@@ -12,6 +13,15 @@ COMMENT #[^\n]*
 {COMMENT} {}
 "INT" {printf("INTEGER\n");}
 "MOD" {printf("REMAINDER\n");}
+"WHILE" {printf("WHILE\n");}
+"DO" {printf("DO\n");}
+"ELSE IF" {printf("ELSE_IF\n");}
+"IF" {printf("IF\n");}
+"ELSE" {printf("ELSE\n");}
+"PRINT" {printf("PRINT\n");}
+"SCAN"  {printf("SCAN\n");}
+"RETURN" {printf("RETURN\n");}
+"NONE" {printf("NONE\n");}
 {VAR_NAME} {printf("VAR_NAME %s\n", yytext);}
 ";"  {printf("SEMICOLON\n");}
 ","  {printf("COMMA\n");}
@@ -22,6 +32,7 @@ COMMENT #[^\n]*
 "{"  {printf("CURLY_BRACKET_L\n");}
 "}"  {printf("CURLY_BRACKET_R\n");}
 "->" {printf("ASSIGNMENT\n");}
+"<-" {printf("FUNCTION_PARAMS");}
 "+"  {printf("PLUS\n");}
 "-"  {printf("MINUS\n");}
 "*"  {printf("MULT\n");}
