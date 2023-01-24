@@ -5,7 +5,7 @@
 LETTER [a-zA-Z]
 NUMBER [0-9]+
 VAR_NAME (_*{LETTER}*)*{LETTER}
-COMMENT ?s:(#[^\n]*)|(#\*.*\*#)
+COMMENT ?s:(#[^\n]*)|(#*\.\*#)
 
 %%
 
