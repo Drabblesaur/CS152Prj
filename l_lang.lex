@@ -2,10 +2,17 @@
 #include <stdio.h>
 %}
 
+%option yylineno
+
+/* Variables names are valid except when there is a number anywhere or an underscore at the end */
+/* Single Line Comments start with '#' and continues until new line */
+/* Multi Line Comments start with '#*' and continues until '*#' */
+
 LETTER [a-zA-Z]
 NUMBER [0-9]+
-VAR_NAME (_*{LETTER}*)*{LETTER}
-COMMENT ?s:(#[^\n]*)|(#\*.*\*#)
+VAR_NAME (_|{LETTER})*{LETTER}
+INVALID_VAR_NAME {VAR_NAME}_
+COMMENT (#[^\n]*)|(#\*(.|\n)*\*#)
 
 %%
 
@@ -19,10 +26,12 @@ COMMENT ?s:(#[^\n]*)|(#\*.*\*#)
 "IF" {printf("IF\n");}
 "ELSE" {printf("ELSE\n");}
 "PRINT" {printf("PRINT\n");}
-"SCAN"  {printf("SCAN\n");}
+"READ"  {printf("READ\n");}
 "RETURN" {printf("RETURN\n");}
 "NONE" {printf("NONE\n");}
+"FUNCT" {printf("FUNCTION_CALL\n");}
 {VAR_NAME} {printf("VAR_NAME %s\n", yytext);}
+{INVALID_VAR_NAME} {printf("ERROR: INVALID VARIABLE NAME \"%s\" (Line %d) \n", yytext, yylineno);}
 ";"  {printf("SEMICOLON\n");}
 ","  {printf("COMMA\n");}
 "["  {printf("SQUARE_BRACKET_L\n");}

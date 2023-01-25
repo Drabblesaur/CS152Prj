@@ -1,11 +1,12 @@
-INT add_Years <-(INT age, INT years){
+FUNCT INT add_Years <-(INT age, INT years){
 	RETURN age+years;
 }
 
-NONE main <-(){
+FUNCT NONE main <-(){
 	INT age[5] -> [11,2,50,4,5]; # Array of ages
 	INT _years; # years to use
 	INT a_N_s; # answer
+	INT wrong_;
 
 	a_N_s -> age[0] - 1;
 	a_N_s -> age[1] * 2;
