@@ -2,22 +2,18 @@
 #include <stdio.h>
 %}
 
+/* Keeps track of line number in file */
 %option yylineno
 
-/* Variables names are valid except when there is a number anywhere or an underscore at the end */
-/* Single Line Comments start with '#' and continues until new line */
+/* Variable names are invalid when there is a number anywhere or an underscore at the end */
+/* Single Line Comments start with '#' and continues until newline */
 /* Multi Line Comments start with '#*' and continues until '*#' */
 
 LETTER [a-zA-Z]
 NUMBER [0-9]+
-<<<<<<< HEAD
 VAR_NAME (_|{LETTER})*{LETTER}
 INVALID_VAR_NAME {VAR_NAME}_
 COMMENT (#[^\n]*)|(#\*(.|\n)*\*#)
-=======
-VAR_NAME (_*{LETTER}*)*{LETTER}
-COMMENT ?s:(#[^\n]*)|(#*\.\*#)
->>>>>>> 51a0d2dde78b304623135b439b71e62aaa159bac
 
 %%
 
