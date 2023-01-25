@@ -32,7 +32,7 @@ COMMENT ?s:(#[^\n]*)|(#\*.*\*#)
 "{"  {printf("CURLY_BRACKET_L\n");}
 "}"  {printf("CURLY_BRACKET_R\n");}
 "->" {printf("ASSIGNMENT\n");}
-"<-" {printf("FUNCTION_PARAMS");}
+"<-" {printf("FUNCTION_PARAMS\n");}
 "+"  {printf("PLUS\n");}
 "-"  {printf("MINUS\n");}
 "*"  {printf("MULT\n");}
