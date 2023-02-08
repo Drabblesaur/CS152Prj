@@ -1,4 +1,7 @@
-lexer: l_lang.lex
+all:
 	flex l_lang.lex
-	gcc -o lexer lex.yy.c -lfl
-	$(info Input "cat test.l | lexer" for tests)
+	bison -v -d --file-prefix=y l_lang.y
+	gcc -o parser lex.yy.c y.tab.c -lfl
+
+clean:
+	rm -f parser lex.yy.c y.tab.c
