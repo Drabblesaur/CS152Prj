@@ -220,6 +220,7 @@ show_val <-();
 | - | MINUS |
 | * | MULT|
 | / | DIV |
+| ! | FACTORIAL|
 | MOD | REMAINDER |
 
 ### RELATIONAL OPERATORS
