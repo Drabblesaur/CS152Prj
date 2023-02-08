@@ -202,7 +202,7 @@ show_val <-();
 
 | Symbol | Token Name |
 | --- | --- |
-| INT | INTEGER |
+| INT | INT |
 | WHILE | WHILE |
 | DO | DO | 
 | FOR | FOR |
@@ -210,7 +210,7 @@ show_val <-();
 | ELSE IF | ELSE_IF |
 | ELSE | ELSE |
 | PRINT | PRINT |
-| FUNCT | FUNCTION_CALL |
+| FUNCT | FUNCT_CALL |
 
 ### ARITHMATIC OPERATORS
 
@@ -220,19 +220,19 @@ show_val <-();
 | - | MINUS |
 | * | MULT|
 | / | DIV |
-| ! | FACTORIAL|
-| MOD | REMAINDER |
+| ! | FACT|
+| MOD | MOD |
 
 ### RELATIONAL OPERATORS
 
 | Symbol | Token Name |
 | --- | --- |
-| = | EQUAL |
-| ~= | NOT_EQUAL |
-| > | GREATER_THAN |
-| >= | GREATER_THAN_OR_EQUAL_TO |
-| < | LESS_THAN |
-| <= | LESS_THAN_OR_EQUAL_TO |
+| = | EQ |
+| ~= | NEQ |
+| > | GT |
+| >= | GTE |
+| < | LT |
+| <= | LTE |
 
 ### IDENTIFIERS AND NUMBERS
 
@@ -246,12 +246,12 @@ show_val <-();
 | Symbol | Token Name |
 | --- | --- |
 | -> | ASSIGNMENT |
-| <- | FUNCTION_PARAMS |
+| <- | FUNCT_PARAMS |
 | ; | SEMICOLON |
 | , | COMMA |
-| [  | SQUARE_BRACKET_L |
-| ] | SQUARE_BRACKET_R |
-| {  | CURLY_BRACKET_L |
-| } | CURLY_BRACKET_R |
-| ( | PARAN_L |
-| ) | PARAN_R |
+| [  | LSB |
+| ] | RSB |
+| {  | LCB |
+| } | RCB |
+| ( | LPR |
+| ) | RPR|
