@@ -210,6 +210,8 @@ show_val <-();
 | ELSE IF | ELSE_IF |
 | ELSE | ELSE |
 | PRINT | PRINT |
+| TRUE | TRUE | 
+| FALSE | FALSE | 
 | FUNCT | FUNCT_CALL |
 
 ### ARITHMATIC OPERATORS
