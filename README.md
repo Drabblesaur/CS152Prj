@@ -180,6 +180,7 @@ Example:
 ```
 return_type Function_Name <-(INT Nums, STR msg){
 
+	return ITEM
 }
 
 Function_Name <-();
@@ -194,6 +195,22 @@ NONE show_val <-(){}
 
 #Function vall (no var)
 show_val <-();
+
+```
+```
+#Full Function Example
+INT sum_List <-(INT[] list_nums,INT length){
+	startBody;
+		startLocal;
+			INT sum -> 0;
+			INT len -> 0;
+		endLocal;
+		WHILE(len < length){
+			sum -> (sum+list_nums[len]);
+		}
+	endBody;
+	return sum;
+}
 ```
 
 ## Symbol Tables
