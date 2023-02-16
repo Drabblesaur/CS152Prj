@@ -5,78 +5,121 @@ extern FILE* yyin;
 
 %start prog
 %token NUMBER VAR_NAME /* Custom REGEXs */
-%token INT MOD WHILE DO ELSE_IF IF ELSE PRINT PRINTLN READ RETURN NONE FUNCT BEGINBODY ENDBODY BEGINLOCAL ENDLOCAL /* Reserved Keywords */ 
-%token COMMA SEMICOLON COLON RSB LSB RPR LPR LCB RCB ASSIGNMENT FUNCT_PARAMS /* Special Characters */
-%token LT LTE GT GTE EQ NEQ /* Relational Operators */
+%token INT BOOL MOD WHILE DO ELSE_IF IF ELSE PRINT PRINTLN READ RETURN FUNCT BEGINLOCAL ENDLOCAL /* Reserved Keywords */ 
+%token COMMA SEMICOLON RSB LSB RPR LPR LCB RCB ASSIGNMENT FUNCT_PARAMS /* Special Characters */
+%token LT LTE GT GTE EQ NEQ TRUE FALSE /* Relational Operators */
 %token PLUS MINUS MULT DIV  /* Arithemtic Operators */
 
 %%
-prog: function
-      {printf("prog -> function\n")}
+prog: functions
+      {printf("prog -> functions")}
 
-function: FUNCT identifier FUNCT_PARAMS LPR declarations RPR LCB BEGINBODY BEGINLOCAL declaration ENDLOCAL statement ENDBODY RETURN identifier RCB
-          {printf("function -> identifier RPR declarations LPR LCB BEGINBODY BEGINLOCAL declaration ENDLOCAL statement ENDBODY RETURN identifier RCB")}
+functions: /*epsilon*/
+           {printf("functions -> epsilon")}
+         | functions function 
+           {printf("functions -> functions function")}
+function: FUNCT VAR_NAME FUNCT_PARAMS LPR declarations RPR LCB BEGINLOCAL declarations ENDLOCAL statements s_return RCB
+          {printf("function -> FUNCT VAR_NAME FUNCT_PARAMS LPR declarations RPR LCB BEGINLOCAL declarations ENDLOCAL statements s_return RCB")}
 
-identifier: identifier
-              {printf("identifier -> identifier")}
-           | identifier identifier
-              {printf("identifier -> identifier identifier ")}
+declarations: /*epsilon*/
+              {printf("declarations -> epsilon")}
+            | declaration COMMA declarations
+              {printf("declarations -> declaration COMMA declarations")}
+declaration: type VAR_NAME LSB NUMBER RSB 
+             {printf("declaration -> type VAR_NAME LSB NUMBER RSB")}
+           | type VAR_NAME
+             {printf("declaration -> type VAR_NAME")}
 
+statements: statement SEMICOLON statements 
+            {printf("statements -> statement SEMICOLON statements")}
+          | statement SEMICOLON
+            {printf("statements -> statement SEMICOLON")}
+statement: s_assignment
+           {printf("statement -> s_assignment")}
+         | s_while 
+           {printf("statement -> s_while")}
+         | s_do 
+           {printf("statement -> s_do")}
+         | s_if 
+           {printf("statement -> s_if")}            
+         | s_else_if 
+           {printf("statement -> s_else_if")}
+         | s_print 
+           {printf("statement -> s_print")}
+         | s_println 
+           {printf("statement -> s_println")}
+         | s_read 
+           {printf("statement -> s_read")}
+         | s_return
+           {printf("statement -> s_return")}
 
-declarations: declaration declarations
-                {printf("declarations -> declaration declarations")}
+s_assignment: VAR_NAME ASSIGNMENT expression
+            {printf("s_assignment -> VAR_NAME ASSIGNMENT expression")}
+s_while: WHILE LPR relational RPR LCB statements RCB
+            {printf("s_while -> WHILE LPR relational RPR LCB statements RCB")}
+s_do: DO LCB statements RCB WHILE LPR relational RPR
+            {printf("s_do -> DO LCB statements RCB WHILE LPR relational RPR")}
+s_if: IF LPR relational RPR LCB statements RCB
+            {printf("s_if -> IF LPR relational RPR LCB statements RCB")}
+s_else_if: ELSE_IF LPR relational RPR LCB statements RCB
+            {printf("s_else_if -> ELSE_IF LPR relational RPR LCB statements RCB")}
+s_print: PRINT LPR expression RPR
+            {printf("s_print -> PRINT LPR expression RPR")}
+s_println: PRINTLN LPR expression RPR
+            {printf("s_println -> PRINTLN LPR expression RPR")}
+s_read: READ LPR VAR_NAME RPR
+            {printf("s_read -> READ LPR VAR_NAME RPR")}
+s_return: RETURN expression
+            {printf("s_return -> RETURN expression")}
 
-declaration: identifier COLON INT [NUMBER] |
-                {printf("declaration -> identifier COLON INT [NUMBER]")}
-            |identifier COLON INT
-                {printf("declaration -> identifier COLON INT")}
+relational: expression comp expression 
+            {printf("relational -> expression comp expression")}
+          | TRUE 
+            {printf("relational -> TRUE")}
+          | FALSE
+            {printf("relational -> FALSE")}
 
-statements: statement statements | statement SEMICOLON
-statement: assignment
-              {printf("statement -> assignment")}
-          | WHILE_stmt 
-              {printf("statement -> WHILE_stmt")}
-          | DO_stmt 
-              {printf("statement -> DO_stmt")}
-          | IF_stmt 
-              {printf("statement -> IF_stmt")}
-          | ELSE_IF_stmt 
-              {printf("statement -> ELSE_IF_stmt")}
-          | PRINT_stmt 
-              {printf("statement -> PRINT_stmt")}
-          | PRINTLN_stmt 
-              {printf("statement -> PRINTLN_stmt")}
-          | BOOL_stmt
-              {printf("statement -> BOOL_stmt")}
+comp: LT 
+        {printf("comp -> LT")}
+    | LTE 
+        {printf("comp -> LTE")}
+    | GT 
+        {printf("comp -> GT")}
+    | GTE
+        {printf("comp -> GTE")}
+    | EQ 
+        {printf("comp -> EQ")}
+    | NEQ
+        {printf("comp -> NEQ")}
 
-assignment: identifier ASSIGNMENT expression 
-            {printf("assignment -> identifier ASSIGNMENT expression")}
-WHILE_stmt: WHILE LPR declarations RPR LCB statements RCB
-            {printf("WHILE_stmt -> WHILE LPR declarations RPR LCB statements RCB")}
-DO_stmt: DO LCB statements RCB WHILE LPR declarations RPR
-            {printf("DO_stmt -> DO LCB statements RCB WHILE LPR declarations RPR")}
-IF_stmt: IF LPR relational RPR LCB statements RCB 
-            {printf("IF_stmt -> IF LPR relational RPR LCB statements RCB")}
-ELSE_IF_stmt: ELSE_IF LPR relational RPR LCB statements RCB
-            {printf("ELSE_IF_stmt -> ELSE_IF LPR relational RPR LCB statements RCB")}
-PRINT_stmt: PRINT VAR_NAME 
-            {printf("PRINT_stmt -> PRINT VAR_NAME")}
-PRINTLN_stmt: PRINTLN VAR_NAME 
-            {printf("PRINTLN_stmt -> PRINTLN VAR_NAME")}
-BOOL_stmt: relational | BOOl | 
+expression: mulop 
+            {printf("expression -> mulop")}
+          | addop
+            {printf("expression -> addop")}
+mulop: mulop MULT term 
+        {printf("mulop -> mulop MULT term")}
+     | mulop DIV term 
+        {printf("mulop -> mulop DIV term")}
+     | mulop MOD term 
+        {printf("mulop -> mulop MOD term")}
+     | term
+        {printf("mulop -> term")}
+addop:/*epsilon*/
+        {printf("addop -> epsilon")}
+      |PLUS expression 
+        {printf("addop -> PLUS expression")}
+      | MINUS expression 
+        {printf("addop -> MINUS expression")}
 
+term: VAR_NAME 
+        {printf("term -> VAR_NAME")}
+    | NUMBER 
+        {printf("term -> NUMBER")}
+    | LPR expression RPR
+        {printf("term -> LPR expression RPR")}
 
-relational: realtions | relational relational
-realtions: r_op|expression
-r_op: EQ | NEQ | GT | GTE | LT | LTE
-expression: mulop | addop
-mulop: term | term MULT mulop | term DIV mulop | term MOD mulop 
-addop: PLUS expression | MINUS expression | /*epislon*/
-
-term: MINUS variable | variable | MINUS NUMBER | NUMBER | LPR expression RPR
-variable: identifier | identifier LSB expression RSB 
-
-%%
+type: INT|BOOL
+        {printf("type -> INT|BOOl|NONE")}
 
 void main(int argc, char** argv){
   if(argc>=2){
