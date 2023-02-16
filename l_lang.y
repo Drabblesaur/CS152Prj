@@ -1,7 +1,10 @@
 %{
 #include <stdio.h>
+#define YYERROR_VERBOSE 1
 extern FILE* yyin;
+extern int yylineno;
 %}
+
 
 %start prog
 %token NUMBER VAR_NAME /* Custom REGEXs */
@@ -14,8 +17,8 @@ extern FILE* yyin;
 prog: /* epsilon */ {printf("prog -> epsilon\n");}
     | function prog {printf("prog -> functions prog\n");}
 
-function: FUNCT type VAR_NAME FUNCT_PARAMS LPR declarations RPR LCB declarations statements RCB {printf("function -> FUNCT type VAR_NAME FUNCT_PARAMS LPR declaration RPR LCB declaration statements RCB\n");}
-
+function: FUNCT type VAR_NAME FUNCT_PARAMS LPR declarations RPR LCB declarations statements RCB 
+		{printf("function -> FUNCT type VAR_NAME FUNCT_PARAMS LPR declaration RPR LCB declaration statements RCB\n");}
 declarations: /* epsilon */ {printf("declarations -> epsilon\n");}
 	    | declaration SEMICOLON declarations {printf("declarations -> declaration SEMICOLON declarations\n");}
 
@@ -93,4 +96,6 @@ void main(int argc, char** argv){
   yyparse();
 }
 
-int yyerror(){};
+int yyerror(const char *str){
+  printf("ERROR: %s (Line %d)\n",str,yylineno);
+}
