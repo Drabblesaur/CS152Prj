@@ -5,9 +5,9 @@ extern FILE* yyin;
 
 %start prog
 %token NUMBER VAR_NAME /* Custom REGEXs */
-%token INT FACT BOOL MOD WHILE DO ELSE_IF IF ELSE PRINT PRINTLN READ RETURN FUNCT BEGINLOCAL ENDLOCAL /* Reserved Keywords */ 
+%token INT FACT BOOL MOD WHILE DO ELSE_IF IF ELSE PRINT PRINTLN READ RETURN FUNCT /* Reserved Keywords */ 
 %token COMMA SEMICOLON LSB RSB LPR RPR LCB RCB ASSIGNMENT FUNCT_PARAMS /* Special Characters */
-%token LT LTE GT GTE EQ NEQ TRUE FALSE /* Relational Operators */
+%token LT LTE GT GTE EQ NEQ /* Relational Operators */
 %token PLUS MINUS MULT DIV  /* Arithemtic Operators */
 
 %%
