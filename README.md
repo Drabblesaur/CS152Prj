@@ -45,7 +45,6 @@ Example:
 ```
 INT var_name;
 INT age;
-INT width, height; # can define n amount of vars in one line.
 ```
 
 ### 1-D Arrays of Ints
@@ -138,15 +137,24 @@ Example:
 ```
 IF(condtion){
 	#code goes here
-}
+};
 
+IF(condition){
+	#code goes here
+}
+ELSE{
+
+};
+
+IF(condition){
+	#code goes here
+}
 ELSE IF(condition){
 	#code goes here
 }
-
-ELSE(condition){
+ELSE{
 	#code goes here
-} 
+}; 
 ```
 
 ### Read / Write Statements
@@ -154,6 +162,8 @@ ELSE(condition){
 Example:
 
 ```
+READ(var);
+
 PRINT(var);
 PRINTLN(var); #Prints with a new Line
 ```
@@ -178,38 +188,38 @@ This is a multiline comment
 Example:
 
 ```
-return_type Function_Name <-(INT Nums, STR msg){
+FUNCT return_type Function_Name <-(INT Nums, STR msg){
 
-	return ITEM
+	return ITEM;
 }
 
-Function_Name <-();
+FUNCT Function_Name <-(){}
 
 #example
-INT sum <-(INT[] list_nums){}
+FUNCT INT sum <-(INT[] list_nums){}
 
 #Function call (with var)
-sum <-(list_nums);
+sum(list_nums);
 
-NONE show_val <-(){}
+#No return type
+FUNCT NONE show_val <-(){}
 
-#Function vall (no var)
-show_val <-();
+#Function call (no var)
+show_val();
 
 ```
 ```
 #Full Function Example
-INT sum_List <-(INT[] list_nums,INT length){
-	startBody;
-		startLocal;
-			INT sum -> 0;
-			INT len -> 0;
-		endLocal;
-		WHILE(len < length){
-			sum -> (sum+list_nums[len]);
-		}
-	endBody;
-	return sum;
+FUNCT INT sum_List <-(INT[] list_nums;INT length;){
+	INT sum;
+	INT len;
+
+	sum -> 0;
+	len -> 0;
+	WHILE(len < length){
+		sum -> (sum+list_nums[len]);
+	}
+	RETURN sum;
 }
 ```
 
@@ -230,10 +240,7 @@ INT sum_List <-(INT[] list_nums,INT length){
 | TRUE | TRUE | 
 | FALSE | FALSE | 
 | FUNCT | FUNCT_CALL |
-| BEGINBODY | BEGINBODY |
-| ENDBODY | ENDBODY |
-| BEGINLOCAL | BEGINLOCAL |
-| ENDLOCAL | ENDLOCAL| 
+| RETURN | RETURN |
 
 ### ARITHMATIC OPERATORS
 

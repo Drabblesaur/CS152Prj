@@ -21,6 +21,7 @@ COMMENT (#[^\n]*)|(#\*(.|\n)*\*#)
 {NUMBER} {return NUMBER;}
 {COMMENT} {}
 "INT" {return INT;}
+"BOOL" {return BOOL;}
 "MOD" {return MOD;}
 "WHILE" {return WHILE;}
 "DO" {return DO;}
@@ -28,10 +29,11 @@ COMMENT (#[^\n]*)|(#\*(.|\n)*\*#)
 "IF" {return IF;}
 "ELSE" {return ELSE;}
 "PRINT" {return PRINT;}
+"PRINTLN" {return PRINT;}
 "READ"  {return READ;}
 "RETURN" {return RETURN;}
-"NONE" {return NONE;}
 "FUNCT" {return FUNCT;}
+"FACT" {return FACT;}
 {VAR_NAME} {return VAR_NAME;}
 {INVALID_VAR_NAME} {printf("ERROR: INVALID VARIABLE NAME \"%s\" (Line %d) \n", yytext, yylineno);}
 ";"  {return SEMICOLON;}
