@@ -33,6 +33,7 @@ COMMENT (#[^\n]*)|(#\*(.|\n)*\*#)
 "READ"  {return READ;}
 "RETURN" {return RETURN;}
 "FUNCT" {return FUNCT;}
+"FACT" {return FACT;}
 {VAR_NAME} {return VAR_NAME;}
 {INVALID_VAR_NAME} {printf("ERROR: INVALID VARIABLE NAME \"%s\" (Line %d) \n", yytext, yylineno);}
 ";"  {return SEMICOLON;}

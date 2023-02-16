@@ -5,7 +5,7 @@ extern FILE* yyin;
 
 %start prog
 %token NUMBER VAR_NAME /* Custom REGEXs */
-%token INT BOOL MOD WHILE DO ELSE_IF IF ELSE PRINT PRINTLN READ RETURN FUNCT BEGINLOCAL ENDLOCAL /* Reserved Keywords */ 
+%token INT FACT BOOL MOD WHILE DO ELSE_IF IF ELSE PRINT PRINTLN READ RETURN FUNCT BEGINLOCAL ENDLOCAL /* Reserved Keywords */ 
 %token COMMA SEMICOLON RSB LSB RPR LPR LCB RCB ASSIGNMENT FUNCT_PARAMS /* Special Characters */
 %token LT LTE GT GTE EQ NEQ TRUE FALSE /* Relational Operators */
 %token PLUS MINUS MULT DIV  /* Arithemtic Operators */
@@ -122,6 +122,8 @@ type: INT
         {printf("type -> INT\n");}
     |BOOL
         {printf("type -> BOOL\n");}
+
+%%
 
 void main(int argc, char** argv){
   if(argc>=2){
