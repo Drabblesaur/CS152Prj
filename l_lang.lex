@@ -34,6 +34,11 @@ COMMENT (#[^\n]*)|(#\*(.|\n)*\*#)
 "RETURN" {return RETURN;}
 "FUNCT" {return FUNCT;}
 "FACT" {return FACT;}
+"BEGINLOCAL" {return BEGINLOCAL;}
+"ENDLOCAL" {return ENDLOCAL;}
+"TRUE" {return TRUE;}
+"FALSE" {return FALSE;}
+
 {VAR_NAME} {return VAR_NAME;}
 {INVALID_VAR_NAME} {printf("ERROR: INVALID VARIABLE NAME \"%s\" (Line %d) \n", yytext, yylineno);}
 ";"  {return SEMICOLON;}

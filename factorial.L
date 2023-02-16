@@ -1,24 +1,20 @@
 FUNCT factorial <- (INT k){
-    beginBody
-        beginLocal
+        BEGINLOCAL
             INT k;
-        endLocal
+        ENDLOCAL
         IF(k<=1){
             return 1;
-        }
-    endBody
-    return k*factorial(k-1);
+        };
+    RETURN k*factorial(k-1);
 }
 
 FUNCT main <- (){
-    beginBody
-        beginLocal
+        BEGINLOCAL
             INT n;
             INT fac;
-        endLocal
+        ENDLOCAL
         READ n;
         fac <- factorial(n);
         PRINT(fac);
-    endBody
     return 0;
 }
