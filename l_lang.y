@@ -17,18 +17,19 @@ extern int yylineno;
 prog: /* epsilon */ {printf("prog -> epsilon\n");}
     | function prog {printf("prog -> functions prog\n");}
 
-function: FUNCT type VAR_NAME FUNCT_PARAMS LPR declarations RPR LCB declarations statements RCB 
-		{printf("function -> FUNCT type VAR_NAME FUNCT_PARAMS LPR declaration RPR LCB declaration statements RCB\n");}
-declarations: /* epsilon */ {printf("declarations -> epsilon\n");}
-	    | declaration SEMICOLON declarations {printf("declarations -> declaration SEMICOLON declarations\n");}
+function: FUNCT type VAR_NAME FUNCT_PARAMS LPR arguments RPR LCB statements RCB {printf("function -> FUNCT type VAR_NAME FUNCT_PARAMS LPR arguments RPR LCB statements RCB\n");}
 
-declaration: type VAR_NAME LSB NUMBER RSB {printf("declaration -> type VAR_NAME LSB NUMBER RSB\n");}
-           | type VAR_NAME {printf("declaration -> type VAR_NAME\n");}
+arguments: /* epsilon */ {printf("arguments -> epsilon\n");}
+	 | argument COMMA arguments {printf("arguements -> argument COMMA arguments\n");}
+
+argument: type VAR_NAME LSB NUMBER RSB {printf("argument -> type VAR_NAME LSB NUMBER RSB\n");}
+        | type VAR_NAME {printf("argument -> type VAR_NAME\n");}
 
 statements: /* epsilon */ {printf("statements -> epsilon\n");}
 	  | statement statements {printf("statements -> statement statements\n");}
 
-statement: s_assignment {printf("statement -> s_assignment\n");}
+statement: s_declarations {printf("statement -> s_declarations\n");}
+	 | s_assignment {printf("statement -> s_assignment\n");}
          | s_while {printf("statement -> s_while\n");}
          | s_do {printf("statement -> s_do\n");}
          | s_if {printf("statement -> s_if\n");}            
@@ -36,6 +37,12 @@ statement: s_assignment {printf("statement -> s_assignment\n");}
          | s_println {printf("statement -> s_println\n");}
          | s_read {printf("statement -> s_read\n");}
          | s_return {printf("statement -> s_return\n");}
+
+s_declarations: /* epsilon */ {printf("declarations -> epsilon\n");}
+              | s_declaration SEMICOLON s_declarations {printf("declarations -> declaration SEMICOLON declarations\n");}
+
+s_declaration: type VAR_NAME LSB NUMBER RSB {printf("declaration -> type VAR_NAME LSB NUMBER RSB\n");}
+           | type VAR_NAME {printf("declaration -> type VAR_NAME\n");}
 
 s_assignment: VAR_NAME ASSIGNMENT expression SEMICOLON{printf("s_assignment -> VAR_NAME ASSIGNMENT expression SEMICOLON\n");}
 
