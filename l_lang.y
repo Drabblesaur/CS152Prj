@@ -20,10 +20,8 @@ prog: /* epsilon */ {printf("prog -> epsilon\n");}
 function: FUNCT type VAR_NAME FUNCT_PARAMS LPR arguments RPR LCB statements RCB {printf("function -> FUNCT type VAR_NAME FUNCT_PARAMS LPR arguments RPR LCB statements RCB\n");}
 
 arguments: /* epsilon */ {printf("arguments -> epsilon\n");}
-	 | argument COMMA arguments {printf("arguements -> argument COMMA arguments\n");}
-
-argument: type VAR_NAME LSB NUMBER RSB {printf("argument -> type VAR_NAME LSB NUMBER RSB\n");}
-        | type VAR_NAME {printf("argument -> type VAR_NAME\n");}
+	 | s_declaration COMMA arguments {printf("arguments -> s_declaration COMMA arguments\n");}
+	 | s_declaration arguments  {printf("arguments -> s_declaration arguments\n");}
 
 statements: /* epsilon */ {printf("statements -> epsilon\n");}
 	  | statement statements {printf("statements -> statement statements\n");}
@@ -38,13 +36,16 @@ statement: s_declarations {printf("statement -> s_declarations\n");}
          | s_read {printf("statement -> s_read\n");}
          | s_return {printf("statement -> s_return\n");}
 
-s_declarations: /* epsilon */ {printf("declarations -> epsilon\n");}
-              | s_declaration SEMICOLON s_declarations {printf("declarations -> declaration SEMICOLON declarations\n");}
+s_declarations: s_declaration SEMICOLON {printf("s_declarations -> s_declaration SEMICOLON\n");}
+	      | s_declaration COMMA s_declarations {printf("s_declarations -> s_declaration COMMA s_declarations \n");}
+	      | s_declaration ASSIGNMENT expression SEMICOLON {printf("s_declarations -> s_declaration s_assignment SEMICOLON\n");}
+	      | s_declaration ASSIGNMENT expression COMMA s_declarations {printf("s_declarations -> s_declaration s_assignment COMMA s_declarations\n");}
 
-s_declaration: type VAR_NAME LSB NUMBER RSB {printf("declaration -> type VAR_NAME LSB NUMBER RSB\n");}
-           | type VAR_NAME {printf("declaration -> type VAR_NAME\n");}
+s_declaration: type VAR_NAME LSB NUMBER RSB {printf("s_declaration -> type VAR_NAME LSB NUMBER RSB\n");}
+             | type VAR_NAME LSB RSB {printf("s_declaration -> type VAR_NAME LSB RSB\n");}
+	     | type VAR_NAME {printf("s_declaration -> type VAR_NAME\n");}
 
-s_assignment: VAR_NAME ASSIGNMENT expression SEMICOLON{printf("s_assignment -> VAR_NAME ASSIGNMENT expression SEMICOLON\n");}
+s_assignment: VAR_NAME ASSIGNMENT expression SEMICOLON {printf("s_assignment -> ASSIGNMENT expression SEMICOLON\n");}
 
 s_while: WHILE LPR relational RPR LCB statements RCB {printf("s_while -> WHILE LPR relational RPR LCB statements RCB\n");}
 
