@@ -1,10 +1,8 @@
 # This is a nested loop 
 
 FUNCT INT main<-(){
-	INT i;
-	INT j;
+	INT i -> 0, INT j -> 0;
 
-	i -> 0;
 	WHILE(I < 2){
 		j -> 1;
     		WHILE(j <= 3){

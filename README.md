@@ -45,6 +45,7 @@ Example:
 ```
 INT var_name;
 INT age;
+INT width, INT height; #Can declare on the same line using a comma
 ```
 
 ### 1-D Arrays of Ints
@@ -210,7 +211,7 @@ show_val();
 ```
 ```
 #Full Function Example
-FUNCT INT sum_List <-(INT[] list_nums;INT length;){
+FUNCT INT sum_List <-(INT[] list_nums,INT length){
 	INT sum;
 	INT len;
 

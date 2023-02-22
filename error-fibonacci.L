@@ -1,4 +1,4 @@
-FUNCT fibonacci <- (INT k;){
+FUNCT fibonacci <- (INT k){
         IF (k <= 1){
                 RETURN 1;
         };

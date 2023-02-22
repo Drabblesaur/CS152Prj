@@ -1,4 +1,4 @@
-FUNCT INT factorial <- (INT k;){
+FUNCT INT factorial <- (INT k){
         IF(k <= 1){
             RETURN 1;
         };
@@ -6,8 +6,7 @@ FUNCT INT factorial <- (INT k;){
 }
 
 FUNCT INT main <- (){
-        INT n;
-        INT fac;
+        INT n, INT fac;
 	READ(n);
 	fac -> factorial(n);
 	PRINT(fac);
