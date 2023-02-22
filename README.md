@@ -19,6 +19,7 @@ Another day another L…
 
 - L Lang is *case sensitive*. All reserved words are expressed in upper case.
 - Whitespace is ignored in L Lang.
+- L Lang must have a function called main. (This is where the code runs first)
 - Valid identifiers in L Lang must begin with a letter or underscore, may be followed by any letters or underscores, and cannot end in an underscore.
 - Identifiers cannot contain ANY whitespace, special characters, or numbers. Examples below.
 
