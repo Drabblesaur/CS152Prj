@@ -1,10 +1,76 @@
 %{
 #include <stdio.h>
+#include <string>
+#include <vector>
+#include <string.h>
 #define YYERROR_VERBOSE 1
 extern FILE* yyin;
 extern int yylineno;
+
+char *identToken;
+int numberToken;
+int  count_names = 0;
+
+
+enum Type { Integer, Array };
+struct Symbol {
+  std::string name;
+  Type type;
+};
+struct Function {
+  std::string name;
+  std::vector<Symbol> declarations;
+};
+
+std::vector <Function> symbol_table;
+
+
+Function *get_function() {
+  int last = symbol_table.size()-1;
+  return &symbol_table[last];
+}
+
+bool find(std::string &value) {
+  Function *f = get_function();
+  for(int i=0; i < f->declarations.size(); i++) {
+    Symbol *s = &f->declarations[i];
+    if (s->name == value) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void add_function_to_symbol_table(std::string &value) {
+  Function f; 
+  f.name = value; 
+  symbol_table.push_back(f);
+}
+
+void add_variable_to_symbol_table(std::string &value, Type t) {
+  Symbol s;
+  s.name = value;
+  s.type = t;
+  Function *f = get_function();
+  f->declarations.push_back(s);
+}
+
+void print_symbol_table(void) {
+  printf("symbol table:\n");
+  printf("--------------------\n");
+  for(int i=0; i<symbol_table.size(); i++) {
+    printf("function: %s\n", symbol_table[i].name.c_str());
+    for(int j=0; j<symbol_table[i].declarations.size(); j++) {
+      printf("  locals: %s\n", symbol_table[i].declarations[j].name.c_str());
+    }
+  }
+  printf("--------------------\n");
+}
 %}
 
+%union {
+  char *op_val;
+}
 
 %start prog
 %token NUMBER VAR_NAME /* Custom REGEXs */
@@ -17,8 +83,18 @@ extern int yylineno;
 prog: /* epsilon */
     | function prog
 
-function: FUNCT type VAR_NAME FUNCT_PARAMS LPR arguments RPR LCB statements RCB 
-
+function: FUNCT type VAR_NAME
+{
+  // midrule:
+  // add the function to the symbol table.
+  std::string func_name = $3;
+  add_function_to_symbol_table(func_name);
+  printf("func %s\n", func_name.c_str());
+}
+  FUNCT_PARAMS LPR arguments RPR LCB statements RCB
+{
+  printf("endfunc\n")
+}
 arguments: /* epsilon */
 	 | s_declaration COMMA arguments
 	 | s_declaration arguments
@@ -43,9 +119,21 @@ s_declarations: s_declaration SEMICOLON
 
 s_declaration: type VAR_NAME LSB NUMBER RSB
              | type VAR_NAME LSB RSB
-	     | type VAR_NAME
+	           | type VAR_NAME
+{
+  // add the variable to the symbol table.
+  std::string value = $2;
+  printf(". %s\n", value.c_str())
+  Type t = Integer;
+  add_variable_to_symbol_table(value, t);
+}
 
 s_assignment: VAR_NAME ASSIGNMENT expression SEMICOLON
+{
+  std::string dst = $1;
+  std::string src = $3;
+  printf("= %s, %s\n", dst.c_str(), src.c_str());
+}
 
 s_while: WHILE LPR relational RPR LCB statements RCB
 
@@ -58,7 +146,10 @@ s_else_if: ELSE_IF LPR relational RPR LCB statements RCB s_else_if
 	 | ELSE LPR relational RPR LCB statements RCB SEMICOLON
 
 s_print: PRINT LPR expression RPR SEMICOLON
-
+{
+  std::string src = $3;
+  printf(".> %s\n", src.c_str());
+}
 s_println: PRINTLN LPR expression RPR SEMICOLON
 
 s_read: READ LPR VAR_NAME RPR SEMICOLON
@@ -76,6 +167,12 @@ comp: LT
 
 expression: mulop
 	  | mulop PLUS mulop
+{
+  std::string dst = $0;
+  std::string src1 = $1;
+  std::string src2 = $3;
+  printf("+, %s, %s, %s\n", dst.c_str(), src1.c_str(), src2.c_str());
+}
 	  | mulop MINUS mulop
 
 mulop: term
@@ -83,8 +180,16 @@ mulop: term
      | mulop DIV term
      | mulop MOD term
 
-term: VAR_NAME
+term:VAR_NAME
+{
+  printf("symbol -> IDENT %s\n", $1)
+  $$ = $1;
+}
     | NUMBER
+{
+  printf("symbol -> NUMBER %s\n", $1)
+  $$ = $1;
+}
     | LPR expression RPR
     | VAR_NAME LPR RPR
     | VAR_NAME LPR expression RPR
