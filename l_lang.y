@@ -14,83 +14,83 @@ extern int yylineno;
 %token PLUS MINUS MULT DIV  /* Arithemtic Operators */
 
 %%
-prog: /* epsilon */ {printf("prog -> epsilon\n");}
-    | function prog {printf("prog -> functions prog\n");}
+prog: /* epsilon */
+    | function prog
 
-function: FUNCT type VAR_NAME FUNCT_PARAMS LPR arguments RPR LCB statements RCB {printf("function -> FUNCT type VAR_NAME FUNCT_PARAMS LPR arguments RPR LCB statements RCB\n");}
+function: FUNCT type VAR_NAME FUNCT_PARAMS LPR arguments RPR LCB statements RCB 
 
-arguments: /* epsilon */ {printf("arguments -> epsilon\n");}
-	 | s_declaration COMMA arguments {printf("arguments -> s_declaration COMMA arguments\n");}
-	 | s_declaration arguments  {printf("arguments -> s_declaration arguments\n");}
+arguments: /* epsilon */
+	 | s_declaration COMMA arguments
+	 | s_declaration arguments
 
-statements: /* epsilon */ {printf("statements -> epsilon\n");}
-	  | statement statements {printf("statements -> statement statements\n");}
+statements: /* epsilon */
+	  | statement statements
 
-statement: s_declarations {printf("statement -> s_declarations\n");}
-	 | s_assignment {printf("statement -> s_assignment\n");}
-         | s_while {printf("statement -> s_while\n");}
-         | s_do {printf("statement -> s_do\n");}
-         | s_if {printf("statement -> s_if\n");}            
-         | s_print {printf("statement -> s_print\n");}
-         | s_println {printf("statement -> s_println\n");}
-         | s_read {printf("statement -> s_read\n");}
-         | s_return {printf("statement -> s_return\n");}
+statement: s_declarations
+	 | s_assignment
+         | s_while
+         | s_do
+         | s_if
+         | s_print
+         | s_println
+         | s_read
+         | s_return
 
-s_declarations: s_declaration SEMICOLON {printf("s_declarations -> s_declaration SEMICOLON\n");}
-	      | s_declaration COMMA s_declarations {printf("s_declarations -> s_declaration COMMA s_declarations \n");}
-	      | s_declaration ASSIGNMENT expression SEMICOLON {printf("s_declarations -> s_declaration s_assignment SEMICOLON\n");}
-	      | s_declaration ASSIGNMENT expression COMMA s_declarations {printf("s_declarations -> s_declaration s_assignment COMMA s_declarations\n");}
+s_declarations: s_declaration SEMICOLON
+	      | s_declaration COMMA s_declarations
+	      | s_declaration ASSIGNMENT expression SEMICOLON
+	      | s_declaration ASSIGNMENT expression COMMA s_declarations
 
-s_declaration: type VAR_NAME LSB NUMBER RSB {printf("s_declaration -> type VAR_NAME LSB NUMBER RSB\n");}
-             | type VAR_NAME LSB RSB {printf("s_declaration -> type VAR_NAME LSB RSB\n");}
-	     | type VAR_NAME {printf("s_declaration -> type VAR_NAME\n");}
+s_declaration: type VAR_NAME LSB NUMBER RSB
+             | type VAR_NAME LSB RSB
+	     | type VAR_NAME
 
-s_assignment: VAR_NAME ASSIGNMENT expression SEMICOLON {printf("s_assignment -> ASSIGNMENT expression SEMICOLON\n");}
+s_assignment: VAR_NAME ASSIGNMENT expression SEMICOLON
 
-s_while: WHILE LPR relational RPR LCB statements RCB {printf("s_while -> WHILE LPR relational RPR LCB statements RCB\n");}
+s_while: WHILE LPR relational RPR LCB statements RCB
 
-s_do: DO LCB statements RCB WHILE LPR relational RPR {printf("s_do -> DO LCB statements RCB WHILE LPR relational RPR\n");}
+s_do: DO LCB statements RCB WHILE LPR relational RPR
 
-s_if: IF LPR relational RPR LCB statements RCB SEMICOLON {printf("s_if -> IF LPR relational RPR LCB statements RCB SEMICOLON\n");}
-    | IF LPR relational RPR LCB statements RCB s_else_if {printf("IF LPR relational RPR LCB statements RCB s_else_if\n");}
+s_if: IF LPR relational RPR LCB statements RCB SEMICOLON
+    | IF LPR relational RPR LCB statements RCB s_else_if
 
-s_else_if: ELSE_IF LPR relational RPR LCB statements RCB s_else_if  {printf("s_else_if -> ELSE_IF LPR relational RPR LCB statements RCB s_else_if\n");}
-	 | ELSE LPR relational RPR LCB statements RCB SEMICOLON {printf("s_else_if -> ELSE_IF LPR relational RPR LCB statements RCB SEMICOLON\n");}
+s_else_if: ELSE_IF LPR relational RPR LCB statements RCB s_else_if
+	 | ELSE LPR relational RPR LCB statements RCB SEMICOLON
 
-s_print: PRINT LPR expression RPR SEMICOLON {printf("s_print -> PRINT LPR expression RPR\n");}
+s_print: PRINT LPR expression RPR SEMICOLON
 
-s_println: PRINTLN LPR expression RPR SEMICOLON {printf("s_println -> PRINTLN LPR expression RPR\n");}
+s_println: PRINTLN LPR expression RPR SEMICOLON
 
-s_read: READ LPR VAR_NAME RPR SEMICOLON {printf("s_read -> READ LPR VAR_NAME RPR\n");}
+s_read: READ LPR VAR_NAME RPR SEMICOLON
 
-s_return: RETURN expression SEMICOLON {printf("s_return -> RETURN expression\n");}
+s_return: RETURN expression SEMICOLON
 
-relational: expression comp expression {printf("relational -> expression comp expression\n");}
+relational: expression comp expression
 
-comp: LT {printf("comp -> LT\n");}
-    | LTE {printf("comp -> LTE\n");}
-    | GT {printf("comp -> GT\n");}
-    | GTE {printf("comp -> GTE\n");}
-    | EQ  {printf("comp -> EQ\n");}
-    | NEQ {printf("comp -> NEQ\n");}
+comp: LT
+    | LTE
+    | GT
+    | GTE
+    | EQ
+    | NEQ
 
-expression: mulop {printf("experssion -> mulop\n");} 
-	  | mulop PLUS mulop  {printf("expression -> mulop PLUS mulop\n");}
-	  | mulop MINUS mulop  {printf("expression -> mulop MINUS mulop\n");}
+expression: mulop
+	  | mulop PLUS mulop
+	  | mulop MINUS mulop
 
-mulop: term {printf("mulop -> term\n");}
-     | mulop MULT term {printf("mulop -> mulop MULT term\n");}
-     | mulop DIV term {printf("mulop -> mulop DIV term\n");}
-     | mulop MOD term {printf("mulop -> mulop MOD term\n");}
+mulop: term
+     | mulop MULT term
+     | mulop DIV term
+     | mulop MOD term
 
-term: VAR_NAME {printf("term -> VAR_NAME\n");}
-    | NUMBER {printf("term -> NUMBER\n");}
-    | LPR expression RPR {printf("term -> LPR expression RPR\n");}
-    | VAR_NAME LPR RPR {printf("term -> VAR_NAME LPR RPR\n");}
-    | VAR_NAME LPR expression RPR {printf("term -> VAR_NAME LPR expression RPR\n");}
+term: VAR_NAME
+    | NUMBER
+    | LPR expression RPR
+    | VAR_NAME LPR RPR
+    | VAR_NAME LPR expression RPR
 
-type: INT {printf("type -> INT\n");}
-    | BOOL {printf("type -> BOOL\n");}
+type: INT
+    | BOOL
 %%
 
 void main(int argc, char** argv){
