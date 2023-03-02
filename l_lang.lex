@@ -1,6 +1,12 @@
+%option noyywrap
 %{
-#include <stdio.h>
+#include <string.h>
 #include "y.tab.h"
+extern char *identToken;
+extern int numberToken;
+
+void quit_error();
+
 %}
 
 /* Keeps track of line number in file */
@@ -18,7 +24,13 @@ COMMENT (#[^\n]*)|(#\*(.|\n)*\*#)
 
 %%
 
-{NUMBER} {return NUMBER;}
+{NUMBER} {
+  char * token = new char[yyleng];
+  strcpy(token, yytext);
+  yylval.op_val = token;
+  numberToken = atoi(yytext); 
+  return NUMBER;
+}
 {COMMENT} {}
 "INT" {return INT;}
 "BOOL" {return BOOL;}
@@ -34,7 +46,13 @@ COMMENT (#[^\n]*)|(#\*(.|\n)*\*#)
 "RETURN" {return RETURN;}
 "FUNCT" {return FUNCT;}
 "FACT" {return FACT;}
-{VAR_NAME} {return VAR_NAME;}
+{VAR_NAME} {
+  char * token = new char[yyleng];
+  strcpy(token, yytext);
+  yylval.op_val = token;
+  identToken = yytext; 
+  return VAR_NAME;
+}
 {INVALID_VAR_NAME} {printf("ERROR: INVALID VARIABLE NAME \"%s\" (Line %d) \n", yytext, yylineno);}
 ";"  {return SEMICOLON;}
 ","  {return COMMA;}
@@ -64,7 +82,7 @@ COMMENT (#[^\n]*)|(#\*(.|\n)*\*#)
 
 %%
 
-quit_error(void){
+void quit_error(){
   printf("ERROR: UNKNOWN TOKEN\n");
   exit(1);
 }
