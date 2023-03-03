@@ -15,7 +15,6 @@ int yyerror(const char *msg);
 char *identToken;
 int numberToken;
 int count_names = 0;
-char temp_num = 0;
 
 enum Type { Integer, Array };
 struct Symbol {
@@ -72,7 +71,7 @@ void print_symbol_table(void) {
 }
 
 std::string create_temp(){
-  return std::string("_temp ") + temp_num++;
+  
 }
 
 std::string decl_temp_code(std::string &temp){
