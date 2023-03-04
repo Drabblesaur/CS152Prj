@@ -331,9 +331,11 @@ s_assignment:
     CodeNode *expression = $6;
     std::string name = $1;
     std::string n = $3;
+    //std::string temp = create_temp();
     node->code = "";
     node->code += expression->code;
     node->code += std::string("[]= ") + name + std::string(", ") + n + std::string(", ") + expression->name + std::string("\n");
+    //node->code += decl_temp_code(temp) + std::string("=[] ") + temp + std::string(", ") + name + std::string(", ") + n + std::string("\n");
     $$ = node;
   }
 
@@ -522,16 +524,27 @@ term:
   | LPR expression RPR
   {
     CodeNode *node = new CodeNode;
+    CodeNode *expression = $2;
+    node->code = "";
+    node->code += expression->code;
+    node->name = expression->name;
     $$ = node;
   }
-  | VAR_NAME LPR RPR
+  | VAR_NAME LSB RSB
   {
     CodeNode *node = new CodeNode;
     $$ = node;
   }
-  | VAR_NAME LPR expression RPR
+  | VAR_NAME LSB expression RSB
   {
     CodeNode *node = new CodeNode;
+    CodeNode *expression = $3;
+    std::string id = $1;
+    std::string temp = create_temp();
+    node->code = "";
+    node->code += expression->code + decl_temp_code(temp);
+    node->code += std::string("=[] ") + temp + std::string(", ") + id + std::string(", ") + expression->name + std::string("\n");
+    node->name = temp;
     $$ = node;
   }
 
