@@ -16,6 +16,7 @@ int yyerror(const char *msg);
 char *identToken;
 int numberToken;
 int count_names = 0;
+int count_temps = 0;
 
 enum Type { Integer, Array };
 struct Symbol {
@@ -73,7 +74,7 @@ void print_symbol_table(void) {
 
 std::string create_temp(){
   std::stringstream sstm;
-  sstm << std::string("_temp") << count_names++;
+  sstm << std::string("_temp") << count_temps++;
   return sstm.str();
 }
 
@@ -94,31 +95,20 @@ std::string decl_temp_code(std::string &temp){
 
 %start prog
 /* Custom REGEXs */
-%token <op_val> NUMBER 
-%token <op_val> VAR_NAME 
+%token <op_val> NUMBER VAR_NAME 
 %token INT FACT BOOL MOD WHILE DO ELSE_IF IF ELSE PRINT PRINTLN READ RETURN FUNCT /* Reserved Keywords */ 
 %token COMMA SEMICOLON LSB RSB LPR RPR LCB RCB ASSIGNMENT FUNCT_PARAMS /* Special Characters */
 %token LT LTE GT GTE EQ NEQ /* Relational Operators */
 %token PLUS MINUS MULT DIV /* Arithemtic Operators */
-%type <code_node> functions
-%type <code_node> function
+%type <code_node> functions function
 %type <code_node> arguments
-%type <code_node> statements
-%type <code_node> statement
-%type <code_node> s_declarations
-%type <code_node> s_declaration
-%type <code_node> s_assignment
-%type <code_node> s_while
-%type <code_node> s_do
-%type <code_node> s_if
-%type <code_node> s_else_if
-%type <code_node> s_print
-%type <code_node> s_println
-%type <code_node> s_read
+%type <code_node> statements statement
+%type <code_node> s_declarations s_declaration s_assignment s_params
+%type <code_node> s_while s_do
+%type <code_node> s_if s_else_if
+%type <code_node> s_print s_println s_read
 %type <code_node> s_return
-%type <code_node> expression
-%type <code_node> mulop
-%type <code_node> term
+%type <code_node> expression mulop term
 
 %%
 prog: 
@@ -155,7 +145,7 @@ function:
     node->code += std::string("func ") + func_name + std::string("\n");
     node->code += arguments->code;
     node->code += statements->code;
-    node->code += std::string("endfunc\n");
+    node->code += std::string("endfunc\n\n");
     $$ = node;
   };
 
@@ -163,26 +153,33 @@ arguments:
   /* epsilon */
   {
     CodeNode *node = new CodeNode;
+    count_names = 0;
     $$ = node;
   }
   | s_declaration COMMA arguments
   {
+    std::stringstream sstm;
+    sstm << std::string("$") << count_names++;
     CodeNode *node = new CodeNode;
     CodeNode *s_declaration = $1;
     CodeNode *arguments = $3;
     node->code = "";
     node->code += s_declaration->code;
     node->code += arguments->code;
+    node->code += std::string("= ") + s_declaration->name + std::string(", ") + sstm.str() + std::string("\n");
     $$ = node;
   }
   | s_declaration arguments
   {
+    std::stringstream sstm;
+    sstm << std::string("$") << count_names++;
     CodeNode *node = new CodeNode;
     CodeNode *s_declaration = $1;
     CodeNode *arguments = $2;
     node->code = "";
     node->code += s_declaration->code;
     node->code += arguments->code;
+    node->code += std::string("= ") + s_declaration->name + std::string(", ") + sstm.str() + std::string("\n");
     $$ = node;
   };
 
@@ -297,6 +294,7 @@ s_declaration:
     std::string name = $2;
     std::string n = $4;
     node->code = std::string(".[] ") + name + std::string(", ") + n + std::string("\n");
+    node->name = $2;
     $$ = node;
   }
   | type VAR_NAME LSB RSB
@@ -304,6 +302,7 @@ s_declaration:
     CodeNode *node = new CodeNode;
     std::string name = $2;
     node->code = std::string(".[] ") + name + std::string(", 0\n");
+    node->name = $2;
     $$ = node;
   }
 	| type VAR_NAME
@@ -311,6 +310,7 @@ s_declaration:
     CodeNode *node = new CodeNode;
     std::string name = $2;
     node->code = std::string(". ") + name + std::string("\n");
+    node->name = $2;
     $$ = node;
   };
 
@@ -416,8 +416,40 @@ s_return:
   RETURN expression SEMICOLON
   {
     CodeNode *node = new CodeNode;
+    CodeNode *expression = $2;
+    node->code = "";
+    node->code += expression->code;
+    node->code += std::string("ret ") + expression->name + std::string("\n");
     $$ = node;
   }
+
+s_params: 
+  /* epsilon */
+  {
+    CodeNode *node = new CodeNode;
+    $$ = node;
+  }
+  | expression COMMA s_params
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expression= $1;
+    CodeNode *s_params = $3;
+    node->code = std::string("param ") + expression->name + std::string("\n");
+    node->code += expression->code + s_params->code;
+    node->name = expression->name;
+    $$ = node;
+  }
+  | expression s_params
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expression= $1;
+    CodeNode *s_params = $2;
+    node->code = std::string("param ") + expression->name + std::string("\n");
+    node->code += expression->code + s_params->code;
+    node->name = expression->name;
+    $$ = node;
+  };
+
 
 relational: expression comp expression
 
@@ -530,9 +562,15 @@ term:
     node->name = expression->name;
     $$ = node;
   }
-  | VAR_NAME LSB RSB
+  | VAR_NAME LPR s_params RPR
   {
     CodeNode *node = new CodeNode;
+    CodeNode *s_params = $3;
+    std::string id = $1;
+    std::string temp = create_temp();
+    node->code = s_params->code + decl_temp_code(temp);
+    node->code += std::string("call ") + id + std::string(", ") + temp + std::string("\n");
+    node->name = temp;
     $$ = node;
   }
   | VAR_NAME LSB expression RSB

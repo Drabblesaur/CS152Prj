@@ -18,5 +18,5 @@ FUNCT INT main<-(){
     PRINT(c);
 
     d -> mult(c, a + b);
-    write(d);
+    PRINT(d);
 }
