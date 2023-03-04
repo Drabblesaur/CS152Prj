@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <string.h>
+#include <sstream>
 #define YYERROR_VERBOSE 1
 extern int yylex(void);
 extern FILE* yyin;
@@ -71,11 +72,17 @@ void print_symbol_table(void) {
 }
 
 std::string create_temp(){
-  
+  std::stringstream sstm;
+  sstm << std::string("_temp") << count_names++;
+  return sstm.str();
 }
 
 std::string decl_temp_code(std::string &temp){
-
+  CodeNode *node = new CodeNode;
+  node->name = temp;
+  node->code = "";
+  node->code = std::string(". ") + temp + std::string("\n");
+  return node->code;
 }
 %}
 
@@ -92,7 +99,7 @@ std::string decl_temp_code(std::string &temp){
 %token INT FACT BOOL MOD WHILE DO ELSE_IF IF ELSE PRINT PRINTLN READ RETURN FUNCT /* Reserved Keywords */ 
 %token COMMA SEMICOLON LSB RSB LPR RPR LCB RCB ASSIGNMENT FUNCT_PARAMS /* Special Characters */
 %token LT LTE GT GTE EQ NEQ /* Relational Operators */
-%token PLUS MINUS MULT DIV  /* Arithemtic Operators */
+%token PLUS MINUS MULT DIV /* Arithemtic Operators */
 %type <code_node> functions
 %type <code_node> function
 %type <code_node> arguments
@@ -143,6 +150,7 @@ function:
     CodeNode *arguments = $6;
     CodeNode *statements = $9;
     std::string func_name = $3;
+    add_function_to_symbol_table(func_name);
     node->code = "";
     node->code += std::string("func ") + func_name + std::string("\n");
     node->code += arguments->code;
@@ -306,15 +314,28 @@ s_declaration:
     $$ = node;
   };
 
-s_assignment: VAR_NAME ASSIGNMENT expression 
-{
-  CodeNode *node = new CodeNode;
-  CodeNode *expression = $3;
-  std::string id = $1;
-  node->code = expression->code;
-  node->code += std::string("= ") + id + std::string(", ") + expression->name + std::string("\n");
-  $$ = node;
-}
+s_assignment: 
+  VAR_NAME ASSIGNMENT expression 
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expression = $3;
+    std::string id = $1;
+    node->code = "";
+    node->code += expression->code;
+    node->code += std::string("= ") + id + std::string(", ") + expression->name + std::string("\n");
+    $$ = node;
+  }
+  | VAR_NAME LSB NUMBER RSB ASSIGNMENT expression
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expression = $6;
+    std::string name = $1;
+    std::string n = $3;
+    node->code = "";
+    node->code += expression->code;
+    node->code += std::string("[]= ") + name + std::string(", ") + n + std::string(", ") + expression->name + std::string("\n");
+    $$ = node;
+  }
 
 s_while: 
   WHILE LPR relational RPR LCB statements RCB
@@ -363,10 +384,22 @@ s_print:
     node->code += std::string(".> ") + expression->name + std::string("\n");
     $$ = node;
   }
+  | PRINT LPR VAR_NAME LSB NUMBER RSB RPR SEMICOLON
+  {
+    CodeNode *node = new CodeNode;
+    std::string name = $3;
+    std::string n = $5; 
+    node->code = "";
+    node->code += std::string(".[]> ") + name + std::string(", ") + n + std::string("\n");
+    $$ = node;
+  }
 s_println: 
   PRINTLN LPR expression RPR SEMICOLON
   {
     CodeNode *node = new CodeNode;
+    CodeNode *expression = $3;
+    node->code = expression->code;
+    node->code += std::string(".> ") + expression->name + std::string("\n");
     $$ = node;
   }
 
@@ -409,12 +442,22 @@ expression:
     CodeNode *mulop1 = $1;
     CodeNode *mulop2 = $3;
     std::string temp = create_temp();
-    node->code = mulop1->code + mulop2->code;
+    node->code = mulop1->code + mulop2->code + decl_temp_code(temp);
     node->code += std::string("+ ") + temp + std::string(", ") + mulop1->name + std::string(", ") + mulop2->name + std::string("\n");
     node->name = temp;
     $$ = node;
   }
 	| mulop MINUS mulop
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *mulop1 = $1;
+    CodeNode *mulop2 = $3;
+    std::string temp = create_temp();
+    node->code = mulop1->code + mulop2->code + decl_temp_code(temp);
+    node->code += std::string("- ") + temp + std::string(", ") + mulop1->name + std::string(", ") + mulop2->name + std::string("\n");
+    node->name = temp;
+    $$ = node;
+  }
 
 mulop: 
   term
@@ -428,16 +471,34 @@ mulop:
   | mulop MULT term
   {
     CodeNode *node = new CodeNode;
+    CodeNode *mulop = $1;
+    CodeNode *term = $3;
+    std::string temp = create_temp();
+    node->code = mulop->code + term->code + decl_temp_code(temp);
+    node->code += std::string("* ") + temp + std::string(", ") + mulop->name + std::string(", ") + term->name + std::string("\n");
+    node->name = temp;
     $$ = node;
   }
   | mulop DIV term
   {
     CodeNode *node = new CodeNode;
+    CodeNode *mulop = $1;
+    CodeNode *term = $3;
+    std::string temp = create_temp();
+    node->code = mulop->code + term->code + decl_temp_code(temp);
+    node->code += std::string("/ ") + temp + std::string(", ") + mulop->name + std::string(", ") + term->name + std::string("\n");
+    node->name = temp;
     $$ = node;
   }
   | mulop MOD term
   {
     CodeNode *node = new CodeNode;
+    CodeNode *mulop = $1;
+    CodeNode *term = $3;
+    std::string temp = create_temp();
+    node->code = mulop->code + term->code + decl_temp_code(temp);
+    node->code += std::string("% ") + temp + std::string(", ") + mulop->name + std::string(", ") + term->name + std::string("\n");
+    node->name = temp;
     $$ = node;
   }
 
@@ -487,6 +548,7 @@ int main(int argc, char** argv){
     yyin = stdin;
   }
   yyparse();
+  //print_symbol_table();
 }
 
 int yyerror(const char *str){

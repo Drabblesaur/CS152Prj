@@ -68,6 +68,7 @@ COMMENT (#[^\n]*)|(#\*(.|\n)*\*#)
 "-"  {return MINUS;}
 "*"  {return MULT;}
 "/"  {return DIV;}
+"%"  {return MOD;}
 "!"  {return FACT;}
 "="  {return EQ;}
 "~=" {return NEQ;}
