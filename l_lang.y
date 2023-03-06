@@ -479,15 +479,6 @@ expression:
     node->name = mulop->name;
     $$ = node;
   }
-  | LPR mulop RPR
-  {
-    CodeNode *node = new CodeNode;
-    CodeNode *mulop = $2;
-    node->code = "";
-    node->code += mulop->code;
-    node->name = mulop->name;
-    $$ = node;
-  }
 	| mulop PLUS mulop
   {
     CodeNode *node = new CodeNode;
@@ -569,6 +560,15 @@ term:
     std::string val = $1;
     node->code = "";
     node->name = val;
+    $$ = node;
+  }
+  | LPR expression RPR
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expression = $2;
+    node->code = "";
+    node->code += expression->code;
+    node->name = expression->name;
     $$ = node;
   }
   | VAR_NAME LPR s_params RPR
