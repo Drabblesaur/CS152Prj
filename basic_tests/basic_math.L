@@ -17,6 +17,6 @@ FUNCT INT main <-(){
     c -> a / b;
     PRINT(c);
     # Modulus, answer is 0, since 0 := 100 % 50
-    c -> a % b;
+    c -> a MOD b;
     PRINT(c);
 }
