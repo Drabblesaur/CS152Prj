@@ -134,20 +134,23 @@ functions:
   };
 
 function: 
-  FUNCT type VAR_NAME FUNCT_PARAMS LPR arguments RPR LCB statements RCB
+  FUNCT type VAR_NAME
+  { //Midrule to add function to symbol table
+    CodeNode *node = new CodeNode;
+    std::string func_name = $3;
+    add_function_to_symbol_table(func_name); 
+    node->code = std::string("func ") + func_name + std::string("\n");
+    $<code_node>$ = node;
+  }
+  FUNCT_PARAMS LPR arguments RPR LCB statements RCB
   {
     CodeNode *node = new CodeNode;
-    CodeNode *arguments = $6;
-    CodeNode *statements = $9;
-    std::string func_name = $3;
-    add_function_to_symbol_table(func_name);
-    node->code = "";
-    node->code += std::string("func ") + func_name + std::string("\n");
-    node->code += arguments->code;
-    node->code += statements->code;
-    node->code += std::string("endfunc\n\n");
+    CodeNode *startfunc = $<code_node>4;
+    CodeNode *arguments = $7;
+    CodeNode *statements = $10;
+    node->code = startfunc->code + arguments->code + statements->code + std::string("endfunc\n\n");
     $$ = node;
-  };
+  }
 
 arguments: 
   /* epsilon */
@@ -293,6 +296,8 @@ s_declaration:
     CodeNode *node = new CodeNode;
     std::string name = $2;
     std::string n = $4;
+    Type t = Integer;
+    add_variable_to_symbol_table(name,t);
     node->code = std::string(".[] ") + name + std::string(", ") + n + std::string("\n");
     node->name = $2;
     $$ = node;
@@ -301,6 +306,8 @@ s_declaration:
   {
     CodeNode *node = new CodeNode;
     std::string name = $2;
+    Type t = Integer;
+    add_variable_to_symbol_table(name,t);
     node->code = std::string(".[] ") + name + std::string(", 0\n");
     node->name = $2;
     $$ = node;
@@ -309,6 +316,8 @@ s_declaration:
   {
     CodeNode *node = new CodeNode;
     std::string name = $2;
+    Type t = Integer;
+    add_variable_to_symbol_table(name,t);
     node->code = std::string(". ") + name + std::string("\n");
     node->name = $2;
     $$ = node;
@@ -386,13 +395,13 @@ s_print:
     node->code += std::string(".> ") + expression->name + std::string("\n");
     $$ = node;
   }
-  | PRINT LPR VAR_NAME LSB NUMBER RSB RPR SEMICOLON
+  | PRINT LPR VAR_NAME LSB expression RSB RPR SEMICOLON
   {
     CodeNode *node = new CodeNode;
+    CodeNode *expression = $5;
     std::string name = $3;
-    std::string n = $5; 
     node->code = "";
-    node->code += std::string(".[]> ") + name + std::string(", ") + n + std::string("\n");
+    node->code += std::string(".[]> ") + name + std::string(", ") + expression->name + std::string("\n");
     $$ = node;
   }
 s_println: 
@@ -465,6 +474,15 @@ expression:
   {
     CodeNode *node = new CodeNode;
     CodeNode *mulop = $1;
+    node->code = "";
+    node->code += mulop->code;
+    node->name = mulop->name;
+    $$ = node;
+  }
+  | LPR mulop RPR
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *mulop = $2;
     node->code = "";
     node->code += mulop->code;
     node->name = mulop->name;
@@ -551,15 +569,6 @@ term:
     std::string val = $1;
     node->code = "";
     node->name = val;
-    $$ = node;
-  }
-  | LPR expression RPR
-  {
-    CodeNode *node = new CodeNode;
-    CodeNode *expression = $2;
-    node->code = "";
-    node->code += expression->code;
-    node->name = expression->name;
     $$ = node;
   }
   | VAR_NAME LPR s_params RPR
