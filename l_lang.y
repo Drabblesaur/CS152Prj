@@ -550,6 +550,7 @@ term:
   {
     CodeNode *node = new CodeNode;
     std::string id = $1;
+    if(!find(id))yyerror(($1 + std::string(" has not been declared")).c_str());
     node->code = "";
     node->name = $1;
     $$ = node;
@@ -613,4 +614,5 @@ int main(int argc, char** argv){
 
 int yyerror(const char *str){
   printf("ERROR: %s (Line %d)\n",str,yylineno);
+  exit(0);
 }
