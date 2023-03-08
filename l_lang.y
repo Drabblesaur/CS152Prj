@@ -471,7 +471,18 @@ s_params:
   };
 
 
-relational: expression comp expression
+relational: 
+  expression comp expression
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expr1 = $1; 
+    CodeNode *expr2 = $3;
+    std::string temp = create_temp();
+    node->code = expr1->code + expr2->code + decl_temp_code(temp);
+    node->code += std::string("< ") + temp + std::string(", ") + expr1->name + std::string(", ") + expr2->name + std::string("\n");
+    node->name = temp;
+    $$ = node;
+  }
 
 comp: LT
     | LTE
