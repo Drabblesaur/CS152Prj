@@ -404,9 +404,6 @@ s_assignment:
   }
 
 s_while: 
-  WHILE LPR relational RPR LCB statements RCB
-  {
-    s_while: 
   WHILE LPR relational RPR LCB statements RCB  
   {
     CodeNode *node = new CodeNode;
