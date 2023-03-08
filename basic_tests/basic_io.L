@@ -2,6 +2,6 @@
 
 FUNCT INT main <-(){
     INT a;
-    READ a;
-    PRINT a;
+    READ (a);
+    PRINT (a);
 }

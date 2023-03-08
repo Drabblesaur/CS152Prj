@@ -1,99 +1,615 @@
 %{
+#include "CodeNode.h"
 #include <stdio.h>
+#include <string>
+#include <vector>
+#include <string.h>
+#include <sstream>
 #define YYERROR_VERBOSE 1
+extern int yylex(void);
 extern FILE* yyin;
 extern int yylineno;
+
+extern int yylex(void);
+int yyerror(const char *msg);
+
+char *identToken;
+int numberToken;
+int count_names = 0;
+int count_temps = 0;
+FILE* f = stdout;
+
+enum Type { Integer, Array };
+struct Symbol {
+  std::string name;
+  Type type;
+};
+struct Function {
+  std::string name;
+  std::vector<Symbol> declarations;
+};
+
+std::vector <Function> symbol_table;
+
+Function *get_function() {
+  int last = symbol_table.size()-1;
+  return &symbol_table[last];
+}
+
+bool find(std::string &value) {
+  Function *f = get_function();
+  for(int i=0; i < f->declarations.size(); i++) {
+    Symbol *s = &f->declarations[i];
+    if (s->name == value) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void add_function_to_symbol_table(std::string &value) {
+  Function f; 
+  f.name = value; 
+  symbol_table.push_back(f);
+}
+
+void add_variable_to_symbol_table(std::string &value, Type t) {
+  Symbol s;
+  s.name = value;
+  s.type = t;
+  Function *f = get_function();
+  f->declarations.push_back(s);
+}
+
+void print_symbol_table(void) {
+  printf("symbol table:\n");
+  printf("--------------------\n");
+  for(int i=0; i<symbol_table.size(); i++) {
+    printf("function: %s\n", symbol_table[i].name.c_str());
+    for(int j=0; j<symbol_table[i].declarations.size(); j++) {
+      printf("  locals: %s\n", symbol_table[i].declarations[j].name.c_str());
+    }
+  }
+  printf("--------------------\n");
+}
+
+std::string create_temp(){
+  std::stringstream sstm;
+  sstm << std::string("_temp") << count_temps++;
+  return sstm.str();
+}
+
+std::string decl_temp_code(std::string &temp){
+  CodeNode *node = new CodeNode;
+  node->name = temp;
+  node->code = "";
+  node->code = std::string(". ") + temp + std::string("\n");
+  return node->code;
+}
 %}
 
+%union {
+  struct CodeNode *code_node;
+  char *op_val;
+  int int_val;
+}
 
 %start prog
-%token NUMBER VAR_NAME /* Custom REGEXs */
+/* Custom REGEXs */
+%token <op_val> NUMBER VAR_NAME 
 %token INT FACT BOOL MOD WHILE DO ELSE_IF IF ELSE PRINT PRINTLN READ RETURN FUNCT /* Reserved Keywords */ 
 %token COMMA SEMICOLON LSB RSB LPR RPR LCB RCB ASSIGNMENT FUNCT_PARAMS /* Special Characters */
 %token LT LTE GT GTE EQ NEQ /* Relational Operators */
-%token PLUS MINUS MULT DIV  /* Arithemtic Operators */
+%token PLUS MINUS MULT DIV /* Arithemtic Operators */
+%type <code_node> functions function
+%type <code_node> arguments
+%type <code_node> statements statement
+%type <code_node> s_declarations s_declaration s_assignment s_params
+%type <code_node> s_while s_do
+%type <code_node> s_if s_else_if
+%type <code_node> s_print s_println s_read
+%type <code_node> s_return
+%type <code_node> expression mulop term
 
 %%
-prog: /* epsilon */ {printf("prog -> epsilon\n");}
-    | function prog {printf("prog -> functions prog\n");}
+prog: 
+  functions
+  {
+    CodeNode *code_node = $1;
+    FILE *f;
+    f = fopen("test.mil", "w");
+    if(f!=NULL){
+      printf("%s\n", code_node->code.c_str());
+      fprintf(f,"%s\n", code_node->code.c_str());
+      fclose(f);
+    }
+  };
 
-function: FUNCT type VAR_NAME FUNCT_PARAMS LPR arguments RPR LCB statements RCB {printf("function -> FUNCT type VAR_NAME FUNCT_PARAMS LPR arguments RPR LCB statements RCB\n");}
+functions: 
+  /* epsilon */
+  {
+    CodeNode *node = new CodeNode;
+    $$ = node;
+  }
+  | function functions
+  {
+    CodeNode *function = $1;
+    CodeNode *functions = $2;
+    CodeNode *node = new CodeNode;
+    node->code = function->code + functions->code;
+    $$ = node;
+  };
 
-arguments: /* epsilon */ {printf("arguments -> epsilon\n");}
-	 | s_declaration COMMA arguments {printf("arguments -> s_declaration COMMA arguments\n");}
-	 | s_declaration arguments  {printf("arguments -> s_declaration arguments\n");}
+function: 
+  FUNCT type VAR_NAME
+  { //Midrule to add function to symbol table
+    CodeNode *node = new CodeNode;
+    std::string func_name = $3;
+    add_function_to_symbol_table(func_name); 
+    node->code = std::string("func ") + func_name + std::string("\n");
+    $<code_node>$ = node;
+  }
+  FUNCT_PARAMS LPR arguments RPR LCB statements RCB
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *startfunc = $<code_node>4;
+    CodeNode *arguments = $7;
+    CodeNode *statements = $10;
+    node->code = startfunc->code + arguments->code + statements->code + std::string("endfunc\n\n");
+    $$ = node;
+  }
 
-statements: /* epsilon */ {printf("statements -> epsilon\n");}
-	  | statement statements {printf("statements -> statement statements\n");}
+arguments: 
+  /* epsilon */
+  {
+    CodeNode *node = new CodeNode;
+    count_names = 0;
+    $$ = node;
+  }
+  | s_declaration COMMA arguments
+  {
+    std::stringstream sstm;
+    sstm << std::string("$") << count_names++;
+    CodeNode *node = new CodeNode;
+    CodeNode *s_declaration = $1;
+    CodeNode *arguments = $3;
+    node->code = s_declaration->code;
+    node->code += arguments->code;
+    node->code += std::string("= ") + s_declaration->name + std::string(", ") + sstm.str() + std::string("\n");
+    $$ = node;
+  }
+  | s_declaration arguments
+  {
+    std::stringstream sstm;
+    sstm << std::string("$") << count_names++;
+    CodeNode *node = new CodeNode;
+    CodeNode *s_declaration = $1;
+    CodeNode *arguments = $2;
+    node->code = s_declaration->code;
+    node->code += arguments->code;
+    node->code += std::string("= ") + s_declaration->name + std::string(", ") + sstm.str() + std::string("\n");
+    $$ = node;
+  };
 
-statement: s_declarations {printf("statement -> s_declarations\n");}
-	 | s_assignment {printf("statement -> s_assignment\n");}
-         | s_while {printf("statement -> s_while\n");}
-         | s_do {printf("statement -> s_do\n");}
-         | s_if {printf("statement -> s_if\n");}            
-         | s_print {printf("statement -> s_print\n");}
-         | s_println {printf("statement -> s_println\n");}
-         | s_read {printf("statement -> s_read\n");}
-         | s_return {printf("statement -> s_return\n");}
+statements:
+  /* epsilon */
+  {
+    CodeNode *node = new CodeNode;
+    $$ = node;
+  }
+	| statement statements{
+    CodeNode *statement = $1;
+    CodeNode *statements = $2;
+    CodeNode *node = new CodeNode;
+    node->code = statement->code + statements->code;
+    $$ = node;
+  };
 
-s_declarations: s_declaration SEMICOLON {printf("s_declarations -> s_declaration SEMICOLON\n");}
-	      | s_declaration COMMA s_declarations {printf("s_declarations -> s_declaration COMMA s_declarations \n");}
-	      | s_declaration ASSIGNMENT expression SEMICOLON {printf("s_declarations -> s_declaration s_assignment SEMICOLON\n");}
-	      | s_declaration ASSIGNMENT expression COMMA s_declarations {printf("s_declarations -> s_declaration s_assignment COMMA s_declarations\n");}
+statement: 
+  s_declarations
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *s_declarations = $1;
+    node->code = s_declarations->code;
+    $$ = node;
+  }
+  | s_while
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *s_while = $1;
+    node->code = s_while->code;
+    $$ = node;
+  }
+  | s_do
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *s_do = $1;
+    node->code = s_do->code;
+    $$ = node;
+  }
+  | s_if
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *s_if = $1;
+    node->code = s_if->code;
+    $$ = node;
+  }
+  | s_print
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *s_print = $1;
+    node->code = s_print->code;
+    $$ = node;
+  }
+  | s_println
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *s_println = $1;
+    node->code = s_println->code;
+    $$ = node;
+  }
+  | s_read
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *s_read = $1;
+    node->code = s_read->code;
+    $$ = node;
+  }
+  | s_return
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *s_return = $1;
+    node->code = s_return->code;
+    $$ = node;
+  }
 
-s_declaration: type VAR_NAME LSB NUMBER RSB {printf("s_declaration -> type VAR_NAME LSB NUMBER RSB\n");}
-             | type VAR_NAME LSB RSB {printf("s_declaration -> type VAR_NAME LSB RSB\n");}
-	     | type VAR_NAME {printf("s_declaration -> type VAR_NAME\n");}
+s_declarations: 
+  s_declaration SEMICOLON
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *s_declaration = $1;
+    node->code = s_declaration->code;
+    $$ = node;
+  }
+	| s_declaration COMMA s_declarations
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *s_declaration = $1;
+    CodeNode *s_declarations = $3;
+    node->code = s_declaration->code + s_declarations->code;
+    $$ = node;
+  }
+	| s_assignment SEMICOLON
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *s_assignment = $1;
+    node->code = s_assignment->code;
+    $$ = node;
+  }
+	| s_assignment COMMA s_declarations
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *s_assignment = $1;
+    CodeNode *s_declarations = $3;
+    node->code = s_assignment->code + s_declarations->code;
+    $$ = node;
+  }
 
-s_assignment: VAR_NAME ASSIGNMENT expression SEMICOLON {printf("s_assignment -> ASSIGNMENT expression SEMICOLON\n");}
+s_declaration: 
+  type VAR_NAME LSB NUMBER RSB
+  {
+    CodeNode *node = new CodeNode;
+    std::string id = $2;
+    std::string n = $4;
+    Type t = Integer;
+    add_variable_to_symbol_table(id,t);
+    node->code = std::string(".[] ") + id + std::string(", ") + n + std::string("\n");
+    node->name = $2;
+    $$ = node;
+  }
+  | type VAR_NAME LSB RSB
+  {
+    CodeNode *node = new CodeNode;
+    std::string id = $2;
+    Type t = Integer;
+    add_variable_to_symbol_table(id,t);
+    node->code = std::string(".[] ") + id + std::string(", 0\n");
+    node->name = $2;
+    $$ = node;
+  }
+	| type VAR_NAME
+  {
+    CodeNode *node = new CodeNode;
+    std::string id = $2;
+    Type t = Integer;
+    add_variable_to_symbol_table(id,t);
+    node->code = std::string(". ") + id + std::string("\n");
+    node->name = $2;
+    $$ = node;
+  };
 
-s_while: WHILE LPR relational RPR LCB statements RCB {printf("s_while -> WHILE LPR relational RPR LCB statements RCB\n");}
+s_assignment: 
+  VAR_NAME ASSIGNMENT expression 
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expression = $3;
+    std::string id = $1;
+    if(!find(id))yyerror((std::string("'") + $1 + std::string("' has not been declared")).c_str());
+    node->code = expression->code;
+    node->code += std::string("= ") + id + std::string(", ") + expression->name + std::string("\n");
+    $$ = node;
+  }
+  | VAR_NAME LSB NUMBER RSB ASSIGNMENT expression
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expression = $6;
+    std::string id = $1;
+    std::string n = $3;
+    if(!find(id))yyerror((std::string("'") + $1 + std::string("' has not been declared")).c_str());
+    node->code = expression->code;
+    node->code += std::string("[]= ") + id + std::string(", ") + n + std::string(", ") + expression->name + std::string("\n");
+    $$ = node;
+  }
 
-s_do: DO LCB statements RCB WHILE LPR relational RPR {printf("s_do -> DO LCB statements RCB WHILE LPR relational RPR\n");}
+s_while: 
+  WHILE LPR relational RPR LCB statements RCB
+  {
+    CodeNode *node = new CodeNode;
+    $$ = node;
+  }
 
-s_if: IF LPR relational RPR LCB statements RCB SEMICOLON {printf("s_if -> IF LPR relational RPR LCB statements RCB SEMICOLON\n");}
-    | IF LPR relational RPR LCB statements RCB s_else_if {printf("IF LPR relational RPR LCB statements RCB s_else_if\n");}
+s_do: 
+  DO LCB statements RCB WHILE LPR relational RPR
+  {
+    CodeNode *node = new CodeNode;
+    $$ = node;
+  }
 
-s_else_if: ELSE_IF LPR relational RPR LCB statements RCB s_else_if  {printf("s_else_if -> ELSE_IF LPR relational RPR LCB statements RCB s_else_if\n");}
-	 | ELSE LPR relational RPR LCB statements RCB SEMICOLON {printf("s_else_if -> ELSE_IF LPR relational RPR LCB statements RCB SEMICOLON\n");}
+s_if: 
+  IF LPR relational RPR LCB statements RCB SEMICOLON
+  {
+    CodeNode *node = new CodeNode;
+    $$ = node;
+  }
+  | IF LPR relational RPR LCB statements RCB s_else_if
+  {
+    CodeNode *node = new CodeNode;
+    $$ = node;
+  }
 
-s_print: PRINT LPR expression RPR SEMICOLON {printf("s_print -> PRINT LPR expression RPR\n");}
+s_else_if: 
+  ELSE_IF LPR relational RPR LCB statements RCB s_else_if
+  {
+    CodeNode *node = new CodeNode;
+    $$ = node;
+  }
+	| ELSE LPR relational RPR LCB statements RCB SEMICOLON
+  {
+    CodeNode *node = new CodeNode;
+    $$ = node;
+  }
 
-s_println: PRINTLN LPR expression RPR SEMICOLON {printf("s_println -> PRINTLN LPR expression RPR\n");}
+s_print: 
+  PRINT LPR expression RPR SEMICOLON
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expression = $3;
+    node->code = expression->code;
+    node->code += std::string(".> ") + expression->name + std::string("\n");
+    $$ = node;
+  }
+  | PRINT LPR VAR_NAME LSB expression RSB RPR SEMICOLON
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expression = $5;
+    std::string id = $3;
+    node->code = std::string(".[]> ") + id + std::string(", ") + expression->name + std::string("\n");
+    $$ = node;
+  }
+s_println: 
+  PRINTLN LPR expression RPR SEMICOLON
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expression = $3;
+    node->code = expression->code;
+    node->code += std::string(".> ") + expression->name + std::string("\n");
+    $$ = node;
+  }
 
-s_read: READ LPR VAR_NAME RPR SEMICOLON {printf("s_read -> READ LPR VAR_NAME RPR\n");}
+s_read: 
+  READ LPR VAR_NAME RPR SEMICOLON
+  {
+    CodeNode *node = new CodeNode;
+    std::string id = $3;
+    node->code = std::string(".< ") + id + std::string("\n");
+    $$ = node;
+  }
+  | READ LPR VAR_NAME LSB expression RSB RPR SEMICOLON
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expression = $5;
+    std::string id = $3;
+    node->code = std::string(".[]< ") + id + std::string(", ") + expression->code + std::string("\n");
+    $$ = node;
+  }
 
-s_return: RETURN expression SEMICOLON {printf("s_return -> RETURN expression\n");}
+s_return: 
+  RETURN expression SEMICOLON
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expression = $2;
+    node->code = expression->code;
+    node->code += std::string("ret ") + expression->name + std::string("\n");
+    $$ = node;
+  }
 
-relational: expression comp expression {printf("relational -> expression comp expression\n");}
+s_params: 
+  /* epsilon */
+  {
+    CodeNode *node = new CodeNode;
+    $$ = node;
+  }
+  | expression COMMA s_params
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expression= $1;
+    CodeNode *s_params = $3;
+    node->code = std::string("param ") + expression->name + std::string("\n");
+    node->code += expression->code + s_params->code;
+    node->name = expression->name;
+    $$ = node;
+  }
+  | expression s_params
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expression= $1;
+    CodeNode *s_params = $2;
+    node->code = std::string("param ") + expression->name + std::string("\n");
+    node->code += expression->code + s_params->code;
+    node->name = expression->name;
+    $$ = node;
+  };
 
-comp: LT {printf("comp -> LT\n");}
-    | LTE {printf("comp -> LTE\n");}
-    | GT {printf("comp -> GT\n");}
-    | GTE {printf("comp -> GTE\n");}
-    | EQ  {printf("comp -> EQ\n");}
-    | NEQ {printf("comp -> NEQ\n");}
 
-expression: mulop {printf("experssion -> mulop\n");} 
-	  | mulop PLUS mulop  {printf("expression -> mulop PLUS mulop\n");}
-	  | mulop MINUS mulop  {printf("expression -> mulop MINUS mulop\n");}
+relational: expression comp expression
 
-mulop: term {printf("mulop -> term\n");}
-     | mulop MULT term {printf("mulop -> mulop MULT term\n");}
-     | mulop DIV term {printf("mulop -> mulop DIV term\n");}
-     | mulop MOD term {printf("mulop -> mulop MOD term\n");}
+comp: LT
+    | LTE
+    | GT
+    | GTE
+    | EQ
+    | NEQ
 
-term: VAR_NAME {printf("term -> VAR_NAME\n");}
-    | NUMBER {printf("term -> NUMBER\n");}
-    | LPR expression RPR {printf("term -> LPR expression RPR\n");}
-    | VAR_NAME LPR RPR {printf("term -> VAR_NAME LPR RPR\n");}
-    | VAR_NAME LPR expression RPR {printf("term -> VAR_NAME LPR expression RPR\n");}
+expression: 
+  mulop
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *mulop = $1;
+    node->code = "";
+    node->code += mulop->code;
+    node->name = mulop->name;
+    $$ = node;
+  }
+	| mulop PLUS mulop
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *mulop1 = $1;
+    CodeNode *mulop2 = $3;
+    std::string temp = create_temp();
+    node->code = mulop1->code + mulop2->code + decl_temp_code(temp);
+    node->code += std::string("+ ") + temp + std::string(", ") + mulop1->name + std::string(", ") + mulop2->name + std::string("\n");
+    node->name = temp;
+    $$ = node;
+  }
+	| mulop MINUS mulop
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *mulop1 = $1;
+    CodeNode *mulop2 = $3;
+    std::string temp = create_temp();
+    node->code = mulop1->code + mulop2->code + decl_temp_code(temp);
+    node->code += std::string("- ") + temp + std::string(", ") + mulop1->name + std::string(", ") + mulop2->name + std::string("\n");
+    node->name = temp;
+    $$ = node;
+  }
 
-type: INT {printf("type -> INT\n");}
-    | BOOL {printf("type -> BOOL\n");}
+mulop: 
+  term
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *term = $1;
+    node->code = term->code;
+    node->name = term->name;
+    $$ = node;
+  }
+  | mulop MULT term
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *mulop = $1;
+    CodeNode *term = $3;
+    std::string temp = create_temp();
+    node->code = mulop->code + term->code + decl_temp_code(temp);
+    node->code += std::string("* ") + temp + std::string(", ") + mulop->name + std::string(", ") + term->name + std::string("\n");
+    node->name = temp;
+    $$ = node;
+  }
+  | mulop DIV term
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *mulop = $1;
+    CodeNode *term = $3;
+    std::string temp = create_temp();
+    node->code = mulop->code + term->code + decl_temp_code(temp);
+    node->code += std::string("/ ") + temp + std::string(", ") + mulop->name + std::string(", ") + term->name + std::string("\n");
+    node->name = temp;
+    $$ = node;
+  }
+  | mulop MOD term
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *mulop = $1;
+    CodeNode *term = $3;
+    std::string temp = create_temp();
+    node->code = mulop->code + term->code + decl_temp_code(temp);
+    node->code += std::string("% ") + temp + std::string(", ") + mulop->name + std::string(", ") + term->name + std::string("\n");
+    node->name = temp;
+    $$ = node;
+  }
+
+term: 
+  VAR_NAME
+  {
+    CodeNode *node = new CodeNode;
+    std::string id = $1;
+    if(!find(id))yyerror((std::string("'") + $1 + std::string("' has not been declared")).c_str());
+    node->code = "";
+    node->name = $1;
+    $$ = node;
+  }
+  | NUMBER
+  {
+    CodeNode *node = new CodeNode;
+    std::string val = $1;
+    node->code = "";
+    node->name = val;
+    $$ = node;
+  }
+  | LPR expression RPR
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expression = $2;
+    node->code = expression->code;
+    node->name = expression->name;
+    $$ = node;
+  }
+  | VAR_NAME LPR s_params RPR
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *s_params = $3;
+    std::string id = $1;
+    std::string temp = create_temp();
+    node->code = s_params->code + decl_temp_code(temp);
+    node->code += std::string("call ") + id + std::string(", ") + temp + std::string("\n");
+    node->name = temp;
+    $$ = node;
+  }
+  | VAR_NAME LSB expression RSB
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expression = $3;
+    std::string id = $1;
+    std::string temp = create_temp();
+    node->code = expression->code + decl_temp_code(temp);
+    node->code += std::string("=[] ") + temp + std::string(", ") + id + std::string(", ") + expression->name + std::string("\n");
+    node->name = temp;
+    $$ = node;
+  }
+
+type: INT
+    | BOOL
 %%
 
-void main(int argc, char** argv){
+int main(int argc, char** argv){
   if(argc>=2){
     yyin = fopen(argv[1], "r");
     if(yyin == NULL)
@@ -102,8 +618,10 @@ void main(int argc, char** argv){
     yyin = stdin;
   }
   yyparse();
+  //print_symbol_table();
 }
 
 int yyerror(const char *str){
   printf("ERROR: %s (Line %d)\n",str,yylineno);
+  exit(0);
 }
