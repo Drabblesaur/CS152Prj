@@ -327,6 +327,7 @@ s_assignment:
     CodeNode *node = new CodeNode;
     CodeNode *expression = $3;
     std::string id = $1;
+    if(!find(id))yyerror((std::string("'") + $1 + std::string("' has not been declared")).c_str());
     node->code = expression->code;
     node->code += std::string("= ") + id + std::string(", ") + expression->name + std::string("\n");
     $$ = node;
@@ -337,9 +338,9 @@ s_assignment:
     CodeNode *expression = $6;
     std::string id = $1;
     std::string n = $3;
+    if(!find(id))yyerror((std::string("'") + $1 + std::string("' has not been declared")).c_str());
     node->code = expression->code;
     node->code += std::string("[]= ") + id + std::string(", ") + n + std::string(", ") + expression->name + std::string("\n");
-    //node->code += decl_temp_code(temp) + std::string("=[] ") + temp + std::string(", ") + id + std::string(", ") + n + std::string("\n");
     $$ = node;
   }
 
@@ -553,7 +554,7 @@ term:
   {
     CodeNode *node = new CodeNode;
     std::string id = $1;
-    if(!find(id))yyerror(($1 + std::string(" has not been declared")).c_str());
+    if(!find(id))yyerror((std::string("'") + $1 + std::string("' has not been declared")).c_str());
     node->code = "";
     node->name = $1;
     $$ = node;
