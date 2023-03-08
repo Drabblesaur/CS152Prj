@@ -126,10 +126,10 @@ functions:
   }
   | function functions
   {
-    CodeNode *code_node1 = $1;
-    CodeNode *code_node2 = $2;
+    CodeNode *function = $1;
+    CodeNode *functions = $2;
     CodeNode *node = new CodeNode;
-    node->code = code_node1->code + code_node2->code;
+    node->code = function->code + functions->code;
     $$ = node;
   };
 
@@ -166,8 +166,7 @@ arguments:
     CodeNode *node = new CodeNode;
     CodeNode *s_declaration = $1;
     CodeNode *arguments = $3;
-    node->code = "";
-    node->code += s_declaration->code;
+    node->code = s_declaration->code;
     node->code += arguments->code;
     node->code += std::string("= ") + s_declaration->name + std::string(", ") + sstm.str() + std::string("\n");
     $$ = node;
@@ -179,8 +178,7 @@ arguments:
     CodeNode *node = new CodeNode;
     CodeNode *s_declaration = $1;
     CodeNode *arguments = $2;
-    node->code = "";
-    node->code += s_declaration->code;
+    node->code = s_declaration->code;
     node->code += arguments->code;
     node->code += std::string("= ") + s_declaration->name + std::string(", ") + sstm.str() + std::string("\n");
     $$ = node;
@@ -193,10 +191,10 @@ statements:
     $$ = node;
   }
 	| statement statements{
-    CodeNode *code_node1 = $1;
-    CodeNode *code_node2 = $2;
+    CodeNode *statement = $1;
+    CodeNode *statements = $2;
     CodeNode *node = new CodeNode;
-    node->code = code_node1->code + code_node2->code;
+    node->code = statement->code + statements->code;
     $$ = node;
   };
 
@@ -294,31 +292,31 @@ s_declaration:
   type VAR_NAME LSB NUMBER RSB
   {
     CodeNode *node = new CodeNode;
-    std::string name = $2;
+    std::string id = $2;
     std::string n = $4;
     Type t = Integer;
-    add_variable_to_symbol_table(name,t);
-    node->code = std::string(".[] ") + name + std::string(", ") + n + std::string("\n");
+    add_variable_to_symbol_table(id,t);
+    node->code = std::string(".[] ") + id + std::string(", ") + n + std::string("\n");
     node->name = $2;
     $$ = node;
   }
   | type VAR_NAME LSB RSB
   {
     CodeNode *node = new CodeNode;
-    std::string name = $2;
+    std::string id = $2;
     Type t = Integer;
-    add_variable_to_symbol_table(name,t);
-    node->code = std::string(".[] ") + name + std::string(", 0\n");
+    add_variable_to_symbol_table(id,t);
+    node->code = std::string(".[] ") + id + std::string(", 0\n");
     node->name = $2;
     $$ = node;
   }
 	| type VAR_NAME
   {
     CodeNode *node = new CodeNode;
-    std::string name = $2;
+    std::string id = $2;
     Type t = Integer;
-    add_variable_to_symbol_table(name,t);
-    node->code = std::string(". ") + name + std::string("\n");
+    add_variable_to_symbol_table(id,t);
+    node->code = std::string(". ") + id + std::string("\n");
     node->name = $2;
     $$ = node;
   };
@@ -329,8 +327,7 @@ s_assignment:
     CodeNode *node = new CodeNode;
     CodeNode *expression = $3;
     std::string id = $1;
-    node->code = "";
-    node->code += expression->code;
+    node->code = expression->code;
     node->code += std::string("= ") + id + std::string(", ") + expression->name + std::string("\n");
     $$ = node;
   }
@@ -338,13 +335,11 @@ s_assignment:
   {
     CodeNode *node = new CodeNode;
     CodeNode *expression = $6;
-    std::string name = $1;
+    std::string id = $1;
     std::string n = $3;
-    //std::string temp = create_temp();
-    node->code = "";
-    node->code += expression->code;
-    node->code += std::string("[]= ") + name + std::string(", ") + n + std::string(", ") + expression->name + std::string("\n");
-    //node->code += decl_temp_code(temp) + std::string("=[] ") + temp + std::string(", ") + name + std::string(", ") + n + std::string("\n");
+    node->code = expression->code;
+    node->code += std::string("[]= ") + id + std::string(", ") + n + std::string(", ") + expression->name + std::string("\n");
+    //node->code += decl_temp_code(temp) + std::string("=[] ") + temp + std::string(", ") + id + std::string(", ") + n + std::string("\n");
     $$ = node;
   }
 
@@ -399,9 +394,8 @@ s_print:
   {
     CodeNode *node = new CodeNode;
     CodeNode *expression = $5;
-    std::string name = $3;
-    node->code = "";
-    node->code += std::string(".[]> ") + name + std::string(", ") + expression->name + std::string("\n");
+    std::string id = $3;
+    node->code = std::string(".[]> ") + id + std::string(", ") + expression->name + std::string("\n");
     $$ = node;
   }
 s_println: 
@@ -426,8 +420,7 @@ s_return:
   {
     CodeNode *node = new CodeNode;
     CodeNode *expression = $2;
-    node->code = "";
-    node->code += expression->code;
+    node->code = expression->code;
     node->code += std::string("ret ") + expression->name + std::string("\n");
     $$ = node;
   }
@@ -567,8 +560,7 @@ term:
   {
     CodeNode *node = new CodeNode;
     CodeNode *expression = $2;
-    node->code = "";
-    node->code += expression->code;
+    node->code = expression->code;
     node->name = expression->name;
     $$ = node;
   }
@@ -589,8 +581,7 @@ term:
     CodeNode *expression = $3;
     std::string id = $1;
     std::string temp = create_temp();
-    node->code = "";
-    node->code += expression->code + decl_temp_code(temp);
+    node->code = expression->code + decl_temp_code(temp);
     node->code += std::string("=[] ") + temp + std::string(", ") + id + std::string(", ") + expression->name + std::string("\n");
     node->name = temp;
     $$ = node;
