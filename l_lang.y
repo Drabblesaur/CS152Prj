@@ -412,6 +412,16 @@ s_read:
   READ LPR VAR_NAME RPR SEMICOLON
   {
     CodeNode *node = new CodeNode;
+    std::string id = $3;
+    node->code = std::string(".< ") + id + std::string("\n");
+    $$ = node;
+  }
+  | READ LPR VAR_NAME LSB expression RSB RPR SEMICOLON
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expression = $5;
+    std::string id = $3;
+    node->code = std::string(".[]< ") + id + std::string(", ") + expression->code + std::string("\n");
     $$ = node;
   }
 
