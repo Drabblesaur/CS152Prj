@@ -1,9 +1,12 @@
 # Tests for if-else statements 
 
 FUNCT INT main <-(){
-    INT a -> 100; 
-    INT b -> 50;
+    INT a; 
+    INT b;
     INT c;
+
+    a -> 100; 
+    b -> 50; 
 
     IF(a < b){
         c -> 50;

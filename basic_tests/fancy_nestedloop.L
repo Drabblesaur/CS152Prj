@@ -1,8 +1,10 @@
 #Test for nested loops 
 
 FUNCT INT main <-(){
-    INT i -> 0;
+    INT i;
     INT j;
+
+    i -> 0; 
 
     WHILE(i < 2){
         j -> 1;
