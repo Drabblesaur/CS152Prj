@@ -3,7 +3,7 @@ FUNCT INT main <-(){
     INT b;
     INT c;
     a -> 100;
-    b -> 5;
+    b -> 50;
 
     # Addition, answer is 150, since 150 := 100+50
     c -> a + b;

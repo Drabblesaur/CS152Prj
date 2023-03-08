@@ -17,6 +17,7 @@ char *identToken;
 int numberToken;
 int count_names = 0;
 int count_temps = 0;
+FILE* f = stdout;
 
 enum Type { Integer, Array };
 struct Symbol {
@@ -115,7 +116,13 @@ prog:
   functions
   {
     CodeNode *code_node = $1;
-    printf("%s\n", code_node->code.c_str());
+    FILE *f;
+    f = fopen("test.mil", "w");
+    if(f!=NULL){
+      printf("%s\n", code_node->code.c_str());
+      fprintf(f,"%s\n", code_node->code.c_str());
+      fclose(f);
+    }
   };
 
 functions: 
