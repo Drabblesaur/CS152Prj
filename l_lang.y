@@ -17,6 +17,12 @@ char *identToken;
 int numberToken;
 int count_names = 0;
 int count_temps = 0;
+int count_c_labels = 0;
+int count_b_labels = 0;
+int count_e_labels = 0;
+int count_if_labels = 0;
+int count_endif_labels = 0;
+int count_else_labels = 0;
 FILE* f = stdout;
 
 enum Type { Integer, Array };
@@ -86,6 +92,52 @@ std::string decl_temp_code(std::string &temp){
   node->code = std::string(". ") + temp + std::string("\n");
   return node->code;
 }
+
+std::string create_label(){
+  std::stringstream sstm;
+  sstm << std::string("beginloop") << count_c_labels++;
+  return sstm.str();
+}
+
+std::string end_label(){
+  std::stringstream sstm;
+  sstm << std::string("endloop") << count_e_labels++;
+  return sstm.str();
+}
+
+std::string body_label(){
+  std::stringstream sstm;
+  sstm << std::string("loopbody") << count_b_labels++;
+  return sstm.str();
+}
+
+
+std::string decl_label(std::string &temp_labels){
+  CodeNode *node = new CodeNode;
+  node->name = temp_labels;
+  node->code = "";
+  node->code = temp_labels + std::string("\n");
+  return node->code;
+}
+
+std::string if_label(){
+  std::stringstream sstm;
+  sstm << std::string("if_true") << count_if_labels++;
+  return sstm.str();
+}
+
+std::string endif_label(){
+  std::stringstream sstm;
+  sstm << std::string("endif") << count_endif_labels++;
+  return sstm.str();
+}
+
+std::string else_label(){
+  std::stringstream sstm;
+  sstm << std::string("else") << count_else_labels++;
+  return sstm.str();
+}
+
 %}
 
 %union {
@@ -106,10 +158,10 @@ std::string decl_temp_code(std::string &temp){
 %type <code_node> statements statement
 %type <code_node> s_declarations s_declaration s_assignment s_params
 %type <code_node> s_while s_do
-%type <code_node> s_if s_else_if
+%type <code_node> s_if s_else s_else_if
 %type <code_node> s_print s_println s_read
 %type <code_node> s_return
-%type <code_node> expression mulop term
+%type <code_node> expression mulop term relational
 
 %%
 prog: 
@@ -352,9 +404,28 @@ s_assignment:
   }
 
 s_while: 
-  WHILE LPR relational RPR LCB statements RCB
+  WHILE LPR relational RPR LCB statements RCB  
   {
     CodeNode *node = new CodeNode;
+    CodeNode *relational = $3;
+    CodeNode *statements = $6;
+    std::string c_label = create_label();
+    std::string b_label = body_label();
+    std::string e_label = end_label();
+    //std::string temp1_label = create_label();
+    //std::string temp2_label = body_label();
+    //std::string temp3_label = end_label();    
+
+    node->code = std::string (": ") + c_label + std::string("\n");
+    node->code += relational->code;
+    node->code += std::string("?:= ") + b_label + std::string(", ") + relational->name;
+    node->code += "\n";
+    node->code += std::string(":= ") + e_label + std::string("\n");
+    node->code += std::string(": ") + b_label + std::string("\n");
+    node->code += statements->code;
+    node->code += std::string(":= ") + decl_label(c_label);
+    node->code += std::string(": ") + e_label + std::string("\n");
+
     $$ = node;
   }
 
@@ -364,16 +435,58 @@ s_do:
     CodeNode *node = new CodeNode;
     $$ = node;
   }
-
-s_if: 
-  IF LPR relational RPR LCB statements RCB SEMICOLON
-  {
+s_if:  
+  IF LPR relational RPR LCB statements RCB 
+  { 
+    printf("THIS IS IF\n");
     CodeNode *node = new CodeNode;
+    CodeNode *relational = $3;
+    CodeNode *statements = $6;
+    std::string if_true = if_label();
+    std::string endif = endif_label();
+    node->code = std::string("?:= ") + if_true + std::string(", ") + relational->name + std::string("\n");
+
     $$ = node;
   }
   | IF LPR relational RPR LCB statements RCB s_else_if
-  {
+  { 
+    printf("THIS IS IF then ELSEIF\n");
+    CodeNode* node = new CodeNode;
+    $$ = node;
+  } 
+  | IF LPR relational RPR LCB statements RCB s_else
+  { 
+    //printf("THIS IS IF then ELSE\n");
     CodeNode *node = new CodeNode;
+    CodeNode *relational = $3;
+    CodeNode *statements = $6;
+    CodeNode *s_else = $8;
+    std::string if_true = if_label();
+    std::string endif = endif_label();
+    
+    node->code = statements->name + relational->code;
+    node->code += std::string("?:= ") + if_true + std::string(", ") + relational->name +std::string("\n");
+    node->code += std::string(": ") + s_else->name + std::string("\n");
+    node->code += if_true + std::string("\n");
+    node->code += statements->code;  
+    node->code += std::string(":= ") + endif + std::string("\n");
+    node->code += s_else->code + std::string("\n");
+    $$ = node;
+  }
+  
+s_else:
+  ELSE LCB statements RCB
+  { 
+    //printf("THIS IS ELSE\n");
+    CodeNode *node = new CodeNode;
+    CodeNode *statements = $3;
+    std::string then = else_label();
+    std::string endifs = endif_label();
+    
+    node->code = std::string(":= ") + then + std::string("\n");
+    node->code += statements->code; 
+    node->code += std::string(": ") + endifs;
+    node->name = then;
     $$ = node;
   }
 
@@ -388,7 +501,7 @@ s_else_if:
     CodeNode *node = new CodeNode;
     $$ = node;
   }
-
+  
 s_print: 
   PRINT LPR expression RPR SEMICOLON
   {
@@ -471,14 +584,73 @@ s_params:
   };
 
 
-relational: expression comp expression
-
-comp: LT
-    | LTE
-    | GT
-    | GTE
-    | EQ
-    | NEQ
+relational: 
+  expression LT expression
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expr1 = $1;
+    CodeNode *expr2 = $3;
+    std::string temp = create_temp();
+    node->code = expr1->code + expr2->code + decl_temp_code(temp);
+    node->code += std::string("< ") + temp + std::string(", ") + expr1->name + std::string(", ") + expr2->name + std::string("\n");
+    node->name = temp;
+    $$ = node;
+  }
+  | expression LTE expression
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expr1 = $1;
+    CodeNode *expr2 = $3;
+    std::string temp = create_temp();
+    node->code = expr1->code + expr2->code + decl_temp_code(temp);
+    node->code += std::string("<= ") + temp + std::string(", ") + expr1->name + std::string(", ") + expr2->name + std::string("\n");
+    node->name = temp;
+    $$ = node;
+  }
+  | expression GT expression
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expr1 = $1;
+    CodeNode *expr2 = $3;
+    std::string temp = create_temp();
+    node->code = expr1->code + expr2->code + decl_temp_code(temp);
+    node->code += std::string("> ") + temp + std::string(", ") + expr1->name + std::string(", ") + expr2->name + std::string("\n");
+    node->name = temp;
+    $$ = node;
+  }
+  | expression GTE expression
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expr1 = $1;
+    CodeNode *expr2 = $3;
+    std::string temp = create_temp();
+    node->code = expr1->code + expr2->code + decl_temp_code(temp);
+    node->code += std::string(">= ") + temp + std::string(", ") + expr1->name + std::string(", ") + expr2->name + std::string("\n");
+    node->name = temp;
+    $$ = node;
+  }
+  | expression EQ expression
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expr1 = $1;
+    CodeNode *expr2 = $3;
+    std::string temp = create_temp();
+    node->code = expr1->code + expr2->code + decl_temp_code(temp);
+    node->code += std::string("== ") + temp + std::string(", ") + expr1->name + std::string(", ") + expr2->name + std::string("\n");
+    node->name = temp;
+    $$ = node;
+  }
+  | expression NEQ expression
+  {
+    CodeNode *node = new CodeNode;
+    CodeNode *expr1 = $1;
+    CodeNode *expr2 = $3;
+    std::string temp = create_temp();
+    node->code = expr1->code + expr2->code + decl_temp_code(temp);
+    node->code += std::string("!= ") + temp + std::string(", ") + expr1->name + std::string(", ") + expr2->name + std::string("\n");
+    node->name = temp;
+    $$ = node;
+  }
 
 expression: 
   mulop
@@ -561,9 +733,9 @@ term:
   {
     CodeNode *node = new CodeNode;
     std::string id = $1;
-    if(!find(id))yyerror((std::string("'") + $1 + std::string("' has not been declared")).c_str());
+    if(!find(id))yyerror((std::string("'") + id + std::string("' has not been declared")).c_str());
     node->code = "";
-    node->name = $1;
+    node->name = id;
     $$ = node;
   }
   | NUMBER
