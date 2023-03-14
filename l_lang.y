@@ -432,8 +432,8 @@ s_if:
     
     node->code = statements->name + relational->code;
     node->code += std::string("?:= ") + if_true + std::string(", ") + relational->name +std::string("\n");
-    node->code += std::string(": ") + s_else->name + std::string("\n");
-    node->code += if_true + std::string("\n");
+    node->code += std::string(":= ") + s_else->name + std::string("\n");
+    node->code += std::string(": ") + if_true + std::string("\n");
     node->code += statements->code;  
     node->code += std::string(":= ") + endif + std::string("\n");
     node->code += s_else->code + std::string("\n");
@@ -449,7 +449,7 @@ s_else:
     std::string then = create_label();
     std::string endifs = create_label();
     
-    node->code = std::string(":= ") + then + std::string("\n");
+    node->code = std::string(": ") + then + std::string("\n");
     node->code += statements->code; 
     node->code += std::string(": ") + endifs;
     node->name = then;
