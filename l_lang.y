@@ -437,6 +437,7 @@ s_if:
     node->code += statements->code;  
     node->code += std::string(":= ") + endif + std::string("\n");
     node->code += s_else->code + std::string("\n");
+    node->code += std::string(": ") + endif + std::string("\n");
     $$ = node;
   }
   
@@ -447,11 +448,9 @@ s_else:
     CodeNode *node = new CodeNode;
     CodeNode *statements = $3;
     std::string then = create_label();
-    std::string endifs = create_label();
     
     node->code = std::string(": ") + then + std::string("\n");
     node->code += statements->code; 
-    node->code += std::string(": ") + endifs;
     node->name = then;
     $$ = node;
   }
