@@ -4,11 +4,11 @@ FUNCT INT main <-(){
   INT c;
   a -> 100;
   b -> 50;
-  IF(a < b){
+  IF(a > b){
     c -> b;
   }
   ELSE{
-    c ->a;
+    c -> a;
   }
   PRINT(c);
 }
