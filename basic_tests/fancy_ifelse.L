@@ -12,6 +12,6 @@ FUNCT INT main <-(){
         c -> 50;
     }ELSE{
         c -> 100;
-    };
+    }
     PRINT(c);
 }
