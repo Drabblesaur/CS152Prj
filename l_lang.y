@@ -561,7 +561,7 @@ relational:
     node->name = temp;
     $$ = node;
   }
-  expression LTE expression
+  |expression LTE expression
   {
     CodeNode *node = new CodeNode;
     CodeNode *expr1 = $1; 
@@ -572,7 +572,7 @@ relational:
     node->name = temp;
     $$ = node;
   }
-  expression GT expression
+  |expression GT expression
   {
     CodeNode *node = new CodeNode;
     CodeNode *expr1 = $1; 
@@ -583,7 +583,7 @@ relational:
     node->name = temp;
     $$ = node;
   }
-  expression GTE expression
+  |expression GTE expression
   {
     CodeNode *node = new CodeNode;
     CodeNode *expr1 = $1; 
@@ -594,7 +594,7 @@ relational:
     node->name = temp;
     $$ = node;
   }
-expression EQ expression
+|expression EQ expression
   {
     CodeNode *node = new CodeNode;
     CodeNode *expr1 = $1; 
@@ -605,7 +605,7 @@ expression EQ expression
     node->name = temp;
     $$ = node;
   }
-  expression NEQ expression
+  |expression NEQ expression
   {
     CodeNode *node = new CodeNode;
     CodeNode *expr1 = $1; 
